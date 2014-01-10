@@ -44,7 +44,9 @@
     [ops1' ops2']))
 
 (defn transform [ops1 ops2]
-  (ot ops1 ops2 (double-list) (double-list)))
+  (let [ops1' (double-list)
+        ops2' (double-list)]
+     (ot ops1 ops2 ops1' ops2')))
 
 ;; Testing
 
