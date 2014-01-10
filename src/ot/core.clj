@@ -1,27 +1,7 @@
-(ns ot.core)
+(ns ot.core
+  (:use [clojure.data.finger-tree :only [double-list]]))
+
 (require 'digest)
-
-
-;; let base = "go"
-;; let op1 = ins "a" ret 1
-;; let op2 = ins "t" ret 1
-
-;; 1st iter...
-;; 'op1 = ins "a"
-;; 'op2 = ret 1
-
-;; 2nd iter...
-;; 'op1 = ins "a" ret 1
-;; 'op2 = ret 1 ins "t"
-
-;; 3rd iter...
-;; 'op1 = ins "a" ret 1 ret 1
-;; 'op2 = ret 1 ins "t" ret 1
-
-;; Results
-;; op1 x 'op2 = ("go" ins "a") + (ret 1 ins "t" ret 1)
-;; op2 x 'op1 = ("go" ins "t") + (ins "a" ret 1 ret 1)
-
 
 (defn doc-id [contents]
   (digest/md5 contents))
