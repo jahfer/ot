@@ -3,6 +3,17 @@
 
 (require 'digest)
 
+(defn seq-equals [a b]
+  (boolean
+    (when (or (sequential? b) (instance? java.util.List b))
+      (loop [a (seq a), b (seq b)]
+        (when (= (nil? a) (nil? b))
+          (or
+            (nil? a)
+            (when (= (first a) (first b))
+              (recur (next a) (next b)))))))))
+
+
 (defn doc-id [contents]
   (digest/md5 contents))
 
@@ -17,7 +28,10 @@
           type2 (:type op2)]
       (cond
        (= :ins type1)
-         (recur (rest ops1) ops2 (conj ops1' op1) (conj ops2' (op :ret 1)))
+         (let [ops1 (rest ops1)
+               ops1' (conj ops1' op1)
+               ops2' (conj ops2' (op :ret 1))]
+           (recur ops1 ops2 ops1' ops2'))
        (= :ins type2)
          (recur ops1 (rest ops2) (conj ops1' (op :ret 1)) (conj ops2' op2))
 
@@ -30,7 +44,7 @@
                     ops2 (rest ops2)
                     ret (op :ret v2)]
                 (recur ops1 ops2 (conj ops1' ret) (conj ops2' ret)))
-            (= op1 op2)
+            (= v1 v2)
               (let [ops1 (rest ops1)
                     ops2 (rest ops2)
                     ret (op :ret v2)]
@@ -47,19 +61,3 @@
   (let [ops1' (double-list)
         ops2' (double-list)]
      (ot ops1 ops2 ops1' ops2')))
-
-;; Testing
-
-(def document "go")
-
-(def op-tom
-  (double-list (op :ret 2) (op :ins "a")))
-(def op-jerry
-  (double-list (op :ret 2) (op :ins "t")))
-
-(def tom-document
-  (str document "a"))
-(def jerry-document
-  (str document "t"))
-
-(let [[a' b'] (transform op-tom op-jerry)])
