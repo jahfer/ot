@@ -1,18 +1,6 @@
-(ns ot.core
-  (:use [clojure.data.finger-tree :only [double-list]]))
+(ns ot.core)
 
 (require 'digest)
-
-(defn seq-equals [a b]
-  (boolean
-    (when (or (sequential? b) (instance? java.util.List b))
-      (loop [a (seq a), b (seq b)]
-        (when (= (nil? a) (nil? b))
-          (or
-            (nil? a)
-            (when (= (first a) (first b))
-              (recur (next a) (next b)))))))))
-
 
 (defn doc-id [contents]
   (digest/md5 contents))
@@ -58,6 +46,6 @@
     [ops1' ops2']))
 
 (defn transform [ops1 ops2]
-  (let [ops1' (double-list)
-        ops2' (double-list)]
+  (let [ops1' []
+        ops2' []]
      (ot ops1 ops2 ops1' ops2')))
