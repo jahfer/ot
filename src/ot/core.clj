@@ -58,6 +58,4 @@
     [ops1' ops2']))
 
 (defn transform [ops1 ops2]
-  (let [ops1' []
-        ops2' []]
-     (ot ops1 ops2 ops1' ops2')))
+  (ot ops1 ops2 [] []))
