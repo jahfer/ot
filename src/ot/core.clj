@@ -17,6 +17,9 @@
 (defn retain-trans [value]
     [(op :ret value) (op :ret value)])
 
+(defn retain-and-assoc [ops1 ops2 value]
+  (assoc-ops [ops1 ops2] (retain-trans value)))
+
 (defn update-head [ops val]
   (conj (rest ops) (assoc (first ops) :val val)))
 
@@ -40,14 +43,14 @@
            (cond
             (> val1 val2)
               (let [ops1 (update-head ops1 (- val1 val2))
-                    [ops1' ops2'] (assoc-ops [ops1' ops2'] (retain-trans val2))]
+                    [ops1' ops2'] (retain-and-assoc ops1' ops2' val2)]
                 (recur ops1 (rest ops2) ops1' ops2'))
             (= val1 val2)
-              (let [[ops1' ops2'] (assoc-ops [ops1' ops2'] (retain-trans val2))]
+              (let [[ops1' ops2'] (retain-and-assoc ops1' ops2' val2)]
                 (recur (rest ops1) (rest ops2) ops1' ops2'))
             :else
               (let [ops2 (update-head ops2 (- val2 val1))
-                    [ops1' ops2'] (assoc-ops [ops1' ops2'] (retain-trans val1))]
+                    [ops1' ops2'] (retain-and-assoc ops1' ops2' val1)]
                 (recur (rest ops1) ops2 ops1' ops2'))))))
 
     [ops1' ops2']))
