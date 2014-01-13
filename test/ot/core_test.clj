@@ -22,15 +22,15 @@
       (is (= a [(op :ret 2) (op :ins "a") (first new-ops)]))
       (is (= b [(op :ret 2) (op :ins "t") (second new-ops)])))))
 
-(deftest ins-trans-test
+(deftest insert-test
   (testing "An insert operation will produce the correct resulting pair"
-    (let [[op1 op2] (ins-trans (op :ins "a"))]
+    (let [[op1 op2] (insert (op :ins "a"))]
       (is (= op1 (op :ins "a")))
       (is (= op2 (op :ret 1))))))
 
-(deftest retain-trans-test
+(deftest retain-test
   (testing "retain-trans will return a vec of two retain operations of the same value"
-    (let [[a b] (retain-trans 5)]
+    (let [[a b] (retain 5)]
       (is (= a (op :ret 5)))
       (is (= b (op :ret 5))))))
 
