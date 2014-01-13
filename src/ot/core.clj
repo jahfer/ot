@@ -8,12 +8,17 @@
 (defn op [type val]
   {:type type :val val})
 
+(defn assoc-ops [op-lists new-ops]
+  (map conj op-lists new-ops))
+
 (defn ins-trans [operation]
   [operation, (op :ret 1)])
 
-(defn retain-trans [value ops1' ops2']
-  (let [ret (op :ret value)]
-    [(conj ops1' ret) (conj ops2' ret)]))
+(defn retain-trans [value]
+    [(op :ret value) (op :ret value)])
+
+(defn update-head [ops val]
+  (conj (rest ops) (assoc (first ops) :val val)))
 
 (defn ot [ops1 ops2 ops1' ops2']
   (if (or (seq ops1) (seq ops2))
@@ -23,10 +28,10 @@
           type2 (:type op2)]
       (cond
        (= :ins type1)
-         (let [[ops1' ops2'] (map conj [ops1' ops2'] (ins-trans op1))]
+         (let [[ops1' ops2'] (assoc-ops [ops1' ops2'] (ins-trans op1))]
            (recur (rest ops1) ops2 ops1' ops2'))
        (= :ins type2)
-         (let [[ops2' ops1'] (map conj [ops2' ops1'] (ins-trans op2))]
+         (let [[ops2' ops1'] (assoc-ops [ops2' ops1'] (ins-trans op2))]
            (recur ops1 (rest ops2) ops1' ops2'))
 
        (= :ret type1 type2)
@@ -34,20 +39,16 @@
                val2 (:val op2)]
            (cond
             (> val1 val2)
-              (let [ops1 (conj (rest ops1) (assoc (first ops1) :val (- val1 val2)))
-                    ops2 (rest ops2)
-                    [ops1' ops2'] (retain-trans val2 ops1' ops2')]
-                (recur ops1 ops2 ops1' ops2'))
+              (let [ops1 (update-head ops1 (- val1 val2))
+                    [ops1' ops2'] (assoc-ops [ops1' ops2'] (retain-trans val2))]
+                (recur ops1 (rest ops2) ops1' ops2'))
             (= val1 val2)
-              (let [ops1 (rest ops1)
-                    ops2 (rest ops2)
-                    [ops1' ops2'] (retain-trans val2 ops1' ops2')]
-                (recur ops1 ops2 ops1' ops2'))
+              (let [[ops1' ops2'] (assoc-ops [ops1' ops2'] (retain-trans val2))]
+                (recur (rest ops1) (rest ops2) ops1' ops2'))
             :else
-              (let [ops1 (rest ops1)
-                    ops2 (conj (rest ops2) (assoc (first ops2) :val (- val2 val1)))
-                    [ops1' ops2'] (retain-trans val1 ops1' ops2')]
-                (recur ops1 ops2 ops1' ops2'))))))
+              (let [ops2 (update-head ops2 (- val2 val1))
+                    [ops1' ops2'] (assoc-ops [ops1' ops2'] (retain-trans val1))]
+                (recur (rest ops1) ops2 ops1' ops2'))))))
 
     [ops1' ops2']))
 
