@@ -20,8 +20,6 @@
 (defn assoc-op [trans ops value]
   (assoc-ops ops (trans value)))
 
-(defn ins-and-assoc [ops1 ops2 value])
-
 (defn update-head [ops val]
   (conj (rest ops) (assoc (first ops) :val val)))
 
