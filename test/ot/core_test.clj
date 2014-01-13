@@ -14,6 +14,15 @@
 (def jerry-document
   (str document "t"))
 
+(deftest insert-trans-test
+  (testing "An insert operation will produce the correct resulting pair"
+    (let [[ops1' ops2'] (insert-trans (op :ins "a") [] [])]
+      (is (= ops1' [(op :ins "a")]))
+      (is (= ops2' [(op :ret 1)])))))
+
+(deftest retain-trans-test
+  (testing "A retain operation will"))
+
 (deftest transform-test
   (testing "Transforming two operations results in the correct pair of functions as response"
     (let [[a' b'] (transform op-tom op-jerry)
