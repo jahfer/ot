@@ -8,8 +8,8 @@
 (defn op [type val]
   {:type type :val val})
 
-(defn insert-trans [op1 ops1' ops2']
-  [(conj ops1' op1) (conj ops2' (op :ret 1))])
+(defn ins-trans [operation]
+  [operation, (op :ret 1)])
 
 (defn retain-trans [value ops1' ops2']
   (let [ret (op :ret value)]
@@ -23,10 +23,10 @@
           type2 (:type op2)]
       (cond
        (= :ins type1)
-         (let [[ops1' ops2'] (insert-trans op1 ops1' ops2')]
+         (let [[ops1' ops2'] (map conj [ops1' ops2'] (ins-trans op1))]
            (recur (rest ops1) ops2 ops1' ops2'))
        (= :ins type2)
-         (let [[ops2' ops1'] (insert-trans op2 ops2' ops1')]
+         (let [[ops2' ops1'] (map conj [ops2' ops1'] (ins-trans op2))]
            (recur ops1 (rest ops2) ops1' ops2'))
 
        (= :ret type1 type2)
