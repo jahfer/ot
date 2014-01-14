@@ -14,11 +14,11 @@
 (def jerry-document
   (str document "t"))
 
-(deftest assoc-ops-test
-  (testing "assoc-ops will add the passed operation to the existing vec"
-    (let [op-lists [op-tom op-jerry]
+(deftest conj-ops-test
+  (testing "conj-ops will add the passed operations to the existing vecs"
+    (let [op-list [op-tom op-jerry]
           new-ops [(op :ins "c") (op :ins "d")]
-          [a b] (assoc-ops op-lists new-ops)]
+          [a b] (conj-ops op-list new-ops)]
       (is (= a [(op :ret 2) (op :ins "a") (first new-ops)]))
       (is (= b [(op :ret 2) (op :ins "t") (second new-ops)])))))
 

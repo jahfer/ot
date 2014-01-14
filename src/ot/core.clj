@@ -8,7 +8,7 @@
 (defn op [type val]
   {:type type :val val})
 
-(defn assoc-ops [op-lists new-ops]
+(defn conj-ops [op-lists new-ops]
   (map conj op-lists new-ops))
 
 (defn insert [operation]
@@ -18,7 +18,7 @@
     [(op :ret value) (op :ret value)])
 
 (defn assoc-op [trans ops value]
-  (assoc-ops ops (trans value)))
+  (conj-ops ops (trans value)))
 
 (defn update-head [ops val]
   (conj (rest ops) (assoc (first ops) :val val)))
