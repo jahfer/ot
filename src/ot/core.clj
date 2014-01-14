@@ -23,6 +23,14 @@
 (defn update-head [ops val]
   (conj (rest ops) (assoc (first ops) :val val)))
 
+(defn insert? [ops]
+  (-> (first ops)
+      (:type)
+      (= :ins)))
+
+(defn retain-both? [ops1 ops2]
+  (= :ret (:type (first ops1)) (:type (first ops2))))
+
 (defn ot [ops1 ops2 ops1' ops2']
   (if (or (seq ops1) (seq ops2))
     (let [op1 (first ops1)
@@ -30,14 +38,14 @@
           type1 (:type op1)
           type2 (:type op2)]
       (cond
-       (= :ins type1)
+
+       (insert? ops1)
          (let [[ops1' ops2'] (assoc-op insert [ops1' ops2'] op1)]
            (recur (rest ops1) ops2 ops1' ops2'))
-       (= :ins type2)
+       (insert? ops2)
          (let [[ops2' ops1'] (assoc-op insert [ops2' ops1'] op2)]
            (recur ops1 (rest ops2) ops1' ops2'))
-
-       (= :ret type1 type2)
+       (retain-both? ops1 ops2)
          (let [val1 (:val op1)
                val2 (:val op2)]
            (cond
