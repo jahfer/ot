@@ -8,17 +8,26 @@
   :dependencies [[org.clojure/clojure "1.5.1"]
                  [digest "1.4.3"]
                  [org.clojure/clojurescript "0.0-2127"]
-                 [org.clojure/core.async "0.1.256.0-1bf8cf-alpha"]]
+                 [org.clojure/core.async "0.1.256.0-1bf8cf-alpha"]
+                 [compojure "1.1.6"]
+                 [hiccup "1.0.2"]
+                 [org.clojure/java.jdbc "0.2.3"]
+                 [com.h2database/h2 "1.3.170"]]
 
-  :plugins [[lein-cljsbuild "1.0.1"]]
+  :plugins [[lein-cljsbuild "1.0.1"]
+            [lein-ring "0.8.10"]]
+
+  :ring {:handler ot.handler/app}
+  :profiles {:dev {:dependencies [[javax.servlet/servlet-api "2.5"]
+                                  [ring-mock "0.1.5"]]}}
 
   :source-paths ["src"]
 
   :cljsbuild {
      :builds [{:id "ot"
-               :source-paths ["src"]
+               :source-paths ["src/ot/cljs"]
                :compiler {
-                 :output-to "public/script.js"
-                 :output-dir "out"
+                 :output-to "resources/public/js/cljs.js"
+                 :output-dir "resources/public/out"
                  :optimizations :none
                  :source-map true}}]})
