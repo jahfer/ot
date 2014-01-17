@@ -2,7 +2,8 @@
   (:require-macros [cljs.core.async.macros :refer [go]])
   (:require [goog.dom :as dom]
             [goog.events :as events]
-            [cljs.core.async :refer [put! chan <!]])
+            [cljs.core.async :refer [put! chan <!]]
+            [ajax.core :refer [GET POST]])
   (:import [goog.net Jsonp]
            [goog.net XhrIo]
            [goog Uri]))
@@ -18,7 +19,9 @@
 
 (defn post [uri params]
   (let [out (chan)]
-    (.send XhrIo uri (fn [res] (put! out res)))
+    (POST uri
+          {:params params
+           :error-handler (fn [res] (put! out res))})
     out))
 
 (defn query-url [q]
@@ -40,7 +43,8 @@
         results-view (dom/getElement "results")]
     (go (while true
           (<! clicks)
-          (let [[_ results] (<! (post (query-url (user-action) {:type :ret :val 1})))]
-            (set! (.-innerHTML results-view) (render-query results)))))))
+          (let [[_ results] (<! (post (query-url (user-action)) {:type :ret :val 1}))]
+            (.log js/console (str "results: " results)))))))
+            ;(set! (.-innerHTML results-view) (render-query results)))))))
 
 (init)

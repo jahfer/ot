@@ -12,7 +12,9 @@
                  [compojure "1.1.6"]
                  [hiccup "1.0.2"]
                  [org.clojure/java.jdbc "0.2.3"]
-                 [com.h2database/h2 "1.3.170"]]
+                 [com.h2database/h2 "1.3.170"]
+                 [cljs-ajax "0.2.3"]
+                 [fogus/ring-edn "0.2.0"]]
 
   :plugins [[lein-cljsbuild "1.0.1"]
             [lein-ring "0.8.10"]]
