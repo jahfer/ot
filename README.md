@@ -1,14 +1,22 @@
 # ot
-
-A Clojure library designed to ... well, that part is up to you.
+`ot` is a basic implementation of Operational Tranforms, used to resolve concurrent edits of a document from multiple sources.
 
 ## Usage
 
-FIXME
+### Build ClojureScript
+`lein cljsbuild auto`
+
+### Run Server
+`lein ring server`
+
+## References
+- [Understanding and Applying Operational Transformation](http://www.codecommit.com/blog/java/understanding-and-applying-operational-transformation)
+- [Operational Transform on Wikipedia](http://en.wikipedia.org/wiki/Operational_transformation)
+- [OT FAQ](http://cooffice.ntu.edu.sg/otfaq/)
+- [Google Wave Operational Transformation](http://www.waveprotocol.org/whitepapers/operational-transform)
+- [OT Explained](http://operational-transformation.github.io/index.html)
 
 ## License
+Copyright © 2014 EPL
 
-Copyright © 2014 FIXME
-
-Distributed under the Eclipse Public License either version 1.0 or (at
-your option) any later version.
+Distributed under the Eclipse Public License version 1.0.
