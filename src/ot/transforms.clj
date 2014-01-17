@@ -1,13 +1,5 @@
 (ns ot.transforms)
 
-(require 'digest)
-
-(defn doc-id [contents]
-  (digest/md5 contents))
-
-(defn print-op [op]
-  (println (str (:type op) ": " (:val op))))
-
 (defn op [type val]
   {:type type :val val})
 
@@ -27,13 +19,14 @@
   (conj (rest ops) (-> (first ops)
                        (assoc :val val))))
 
-(defn insert? [ops]
-  (-> (first ops)
-      (:type)
-      (= :ins)))
+(defn insert? [operation]
+  (= :ins (:type operation)))
 
-(defn retain-both? [ops1 ops2]
-  (= :ret (:type (first ops1)) (:type (first ops2))))
+(defn retain? [operation]
+  (= :ret (:type operation)))
+
+(defn retain-both? [op1 op2]
+  (= :ret (:type op1) (:type op2)))
 
 (defn retain-ops [ops1 ops2 ops']
   (let [val1 (:val (first ops1))
@@ -56,18 +49,18 @@
 
 (defn gen-inverse-ops [ops1 ops2 ops']
   (cond
-   (insert? ops1)
+   (insert? (first ops1))
      (let [ops' (-> (first ops1)
                     (insert)
                     (assoc-op ops'))]
        [(rest ops1) ops2 ops'])
-   (insert? ops2)
+   (insert? (first ops2))
      (let [ops' (-> (first ops2)
                     (insert)
                     (assoc-op (reverse ops'))
                     (reverse))]
        [ops1 (rest ops2) ops'])
-   (retain-both? ops1 ops2)
+   (retain-both? (first ops1) (first ops2))
      (retain-ops ops1 ops2 ops')))
 
 (defn ot [ops1 ops2 ops']
