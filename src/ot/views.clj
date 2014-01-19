@@ -28,14 +28,8 @@
    (gen-page-head "Edit")
    header-links
    [:h1 "Edit"]
-   [:input#query {:type "text"}]
-   [:button#search "Search"]
-   [:p#results]
-   [:hr]
    [:textarea#editor]
    (hic-p/include-js "/out/goog/base.js")
+   (hic-p/include-js "/js/vendor/jquery-1.10.2.min.js")
    (hic-p/include-js "/js/cljs.js")
    [:script "goog.require('ot.cljs.core')"]))
-
-(defn live-update [ops]
-  (map transforms/print-op ops))
