@@ -20,7 +20,8 @@
   (let [operation (first ops)]
     (cond
      (transforms/insert? operation)
-       (recur (rest ops) (apply-ins operation doc))
+       (recur (-> (rest ops)
+                  (conj (transforms/op :ret 1))) (apply-ins operation doc))
      (transforms/retain? operation)
        (let [[head tail] (apply-ret operation doc)]
          (str head (apply-ops (rest ops) tail)))

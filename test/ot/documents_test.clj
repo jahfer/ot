@@ -6,7 +6,7 @@
 (def document "ram")
 
 (def op-tom
-  [(op :ret 1) (op :ins "o") (op :ret 3) (op :ins "!")])
+  [(op :ret 1) (op :ins "o") (op :ret 2) (op :ins "!")])
 
 (deftest apply-ins-test
   (testing "Applying an insert operation prepends the character to the document"
