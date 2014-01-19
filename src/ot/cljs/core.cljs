@@ -22,9 +22,6 @@
            :success (fn [res] (put! out res))})
     out))
 
-(defn query-url [q]
-  (str live-url))
-
 (defn init []
   (let [keypress (listen (sel1 :#editor) "keypress")]
     (go (while true
