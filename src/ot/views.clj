@@ -18,18 +18,12 @@
 
 (defn home-page []
   (hic-p/html5
-   (gen-page-head "Home")
-   header-links
-   [:h1 "Home"]
-   [:p "Webapp to live-edit documents"]))
-
-(defn edit-page []
-  (hic-p/html5
-   (gen-page-head "Edit")
-   header-links
-   [:h1 "Edit"]
-   [:textarea#editor]
-   (hic-p/include-js "/out/goog/base.js")
-   (hic-p/include-js "/js/vendor/jquery-1.10.2.min.js")
-   (hic-p/include-js "/js/cljs.js")
-   [:script "goog.require('ot.cljs.core')"]))
+   (gen-page-head "Editor")
+   [:body
+     [:script#lt_ws {:src "http://localhost:61732/socket.io/lighttable/ws.js"}]
+     [:div#app]
+     (hic-p/include-js "http://fb.me/react-0.8.0.js")
+     (hic-p/include-js "/out/goog/base.js")
+     (hic-p/include-js "/js/vendor/jquery-1.10.2.min.js")
+     (hic-p/include-js "/js/cljs.js")
+     [:script "goog.require('ot.cljs.core')"]]))
