@@ -13,8 +13,6 @@
 (defroutes app-routes
   (GET "/" []
        (views/home-page))
-  (GET "/edit" []
-       (views/edit-page))
   (POST "/live" [type val]
         (println (str "type: " type " val: " val))
         (generate-response {:hello type}))
