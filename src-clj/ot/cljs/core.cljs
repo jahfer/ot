@@ -30,8 +30,6 @@
               :id "editor"
               :onKeyPress #(put! comm (.-key %))} "go")))))
 
-     ;:onKeyPress #(put! comm (.-key %))}))))
-
 (defn ot-app [app owner]
   (reify
     om/IWillMount
@@ -56,23 +54,3 @@
     (on ($ el) type
         (fn [e] (put! out e)))
     out))
-
-(defn post [uri params]
-  (let [out (chan)]
-    (ajax uri
-          {:type "POST"
-           :data params
-           :contentType "application/edn"
-           :success (fn [res] (put! out res))})
-    out))
-
-;; (defn init []
-;;   (let [keypress (listen (om/get-node "editor") "keypress")]
-;;     (go (while true
-;;           (let [e (<! keypress)
-;;                 key (.-key e)]
-;;             (jq-util/log (.-key e))
-;;             (let [results (<! (post "/live" {:type :ins :val key}))]
-;;               (jq-util/log (pr-str results))))))))
-
-;; (init)
