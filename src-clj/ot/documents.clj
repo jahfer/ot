@@ -1,5 +1,5 @@
 (ns ot.documents
-  (:require [ot.transforms :as transforms]))
+  (:require [ot.crossover.transforms :as transforms]))
 
 (require 'digest)
 (use '[clojure.string :only (join)])

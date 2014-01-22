@@ -26,11 +26,13 @@
   :profiles {:dev {:dependencies [[javax.servlet/servlet-api "2.5"]
                                   [ring-mock "0.1.5"]]}}
 
-  :source-paths ["src"]
+  :source-paths ["src-clj"]
 
-  :cljsbuild {
-     :builds [{:id "ot"
-               :source-paths ["src/ot/cljs"]
+  :cljsbuild {:crossovers [ot.crossover]
+              :builds [{:id "dev"
+               :source-paths ["src-clj/ot/cljs"]
+               :crossover-path "crossover-cljs"
+               :crossover-jar false
                :compiler {
                  :output-to "resources/public/js/cljs.js"
                  :output-dir "resources/public/out"
