@@ -2,7 +2,7 @@
 `ot` is a basic implementation of Operational Transforms, used to resolve concurrent edits of a document from multiple sources.
 
 ## Usage
-1. **Auto-compile ClojureScript** - `lein cljsbuild auto`
+1. **Auto-compile ClojureScript** - `lein cljsbuild auto dev`
 
 2. **Run Server** - `lein ring server` in a new terminal window
 
