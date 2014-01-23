@@ -17,7 +17,12 @@
                  [prismatic/dommy "0.1.2"]
                  [fogus/ring-edn "0.2.0"]
                  [om "0.2.3"]
-                 [com.facebook/react "0.8.0.1"]]
+                 [com.facebook/react "0.8.0.1"]
+                 [ring/ring-devel "1.1.8"]
+                 [ring/ring-core "1.1.8"]
+                 [http-kit "2.1.16"]]
+
+  :main ot.main
 
   :plugins [[lein-cljsbuild "1.0.1"]
             [lein-ring "0.8.10"]]

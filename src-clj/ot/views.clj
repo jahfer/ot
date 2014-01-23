@@ -21,6 +21,7 @@
    (gen-page-head "Editor")
    [:body
      [:script#lt_ws {:src "http://localhost:61732/socket.io/lighttable/ws.js"}]
+     [:div [:button#websocket "Click me!"]]
      [:div#app]
      (hic-p/include-js "http://fb.me/react-0.8.0.js")
      (hic-p/include-js "/out/goog/base.js")
