@@ -50,9 +50,3 @@
               (om/build editor/component app {:opts {:comm comm}})))))
 
 (om/root app-state ot-app (sel1 :#app))
-
-(defn listen [el type]
-  (let [out (chan)]
-    (on ($ el) type
-        (fn [e] (put! out e)))
-    out))
