@@ -13,26 +13,6 @@
 ;; Define intial state of app
 (def app-state (atom {:editor {:text "Hello world"}}))
 
-(defn editor [data owner opts]
-  (reify
-    om/IInitState
-    (init-state [_])
-    om/IWillMount
-    (will-mount [_]
-                (let [{:keys [comm]} opts]
-                  (init!)
-                  (go (while true
-                        (let [key (<! comm)]
-                          (jq-util/log (pr-str (transforms/op :ins key))))))))
-    om/IDidUpdate
-    (did-update [_ _ _ _])
-    om/IRenderState
-    (render-state [data owner]
-      (let [{:keys [comm]} opts]
-        (dom/textarea
-         #js {:ref "editor"
-              :id "editor"
-              :onKeyPress #(put! comm (.-key %))} "go")))))
 
 (defn ot-app [app owner]
   (reify
