@@ -2,50 +2,16 @@
   (:require-macros [cljs.core.async.macros :refer [go]])
   (:require [cljs.core.async :refer [put! chan <!]]
             [dommy.utils :as utils]
-            [cljs.reader :as reader]
             [dommy.core :as dommy]
             [jayq.util :as jq-util]
             [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]
-            [ot.crossover.transforms :as transforms])
-  (:use-macros [dommy.macros :only [node sel sel1]])
-  (:use [jayq.core :only [$ on clone]]))
+            [ot.cljs.util.sockets :as ws]
+            [ot.cljs.components.editor :as editor])
+  (:use-macros [dommy.macros :only [node sel sel1]]))
 
-(def send (chan))
-(def receive (chan))
-
-(def ws-url "ws://localhost:3000/ws")
-(def ws (new js/WebSocket ws-url))
-
-(defn event-chan [c el type]
-  (let [writer #(put! c %)]
-    (dommy/listen! el type writer)
-    {:chan c
-     :unsubscribe #(dommy/unlisten! el type writer)}))
-
-(defn make-sender []
-  (event-chan send (sel1 :#websocket) :click)
-  (go
-    (while true
-      (let [evt (<! send)]
-        (when (= (.-type evt) "click")
-          (.send ws "Test"))))))
-
-(defn make-receiver []
-  (set! (.-onmessage ws) (fn [msg] (put! receive msg)))
-  (add-message))
-
-(defn add-message []
-  (go
-   (while true
-     (let [msg (<! receive)
-           raw-data (.-data msg)
-           data (reader/read-string raw-data)]
-       (jq-util/log (str data))))))
-
-(defn init! []
-  (make-sender)
-  (make-receiver))
+;; Define intial state of app
+(def app-state (atom {:editor {:text "Hello world"}}))
 
 (defn editor [data owner opts]
   (reify
@@ -81,9 +47,7 @@
     om/IRender
     (render [_]
             (let [comm (om/get-state owner :comm)]
-              (om/build editor app {:opts {:comm comm}})))))
-
-(def app-state (atom {:text "Hello world"}))
+              (om/build editor/component app {:opts {:comm comm}})))))
 
 (om/root app-state ot-app (sel1 :#app))
 
