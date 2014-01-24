@@ -22,7 +22,7 @@
                  [ring/ring-core "1.1.8"]
                  [http-kit "2.1.16"]]
 
-  :main ot.main
+  :main ot.core
 
   :plugins [[lein-cljsbuild "1.0.1"]
             [lein-ring "0.8.10"]]
@@ -31,11 +31,11 @@
   :profiles {:dev {:dependencies [[javax.servlet/servlet-api "2.5"]
                                   [ring-mock "0.1.5"]]}}
 
-  :source-paths ["src-clj"]
+  :source-paths ["src"]
 
   :cljsbuild {:crossovers [ot.crossover]
               :builds [{:id "dev"
-               :source-paths ["src-clj/ot/cljs"]
+               :source-paths ["src/ot/cljs"]
                :crossover-path "crossover-cljs"
                :crossover-jar false
                :compiler {

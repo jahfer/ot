@@ -1,4 +1,4 @@
-(ns ot.documents
+(ns ot.crossover.documents
   (:require [ot.crossover.transforms :as transforms]))
 
 (require 'digest)

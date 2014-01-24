@@ -1,7 +1,7 @@
 (ns ot.documents-test
   (:require [clojure.test :refer :all]
             [ot.crossover.transforms :refer :all]
-            [ot.documents :refer :all]))
+            [ot.crossover.documents :refer :all]))
 
 (def document "ram")
 

@@ -1,4 +1,4 @@
-(ns ot.views
+(ns ot.templating.views
   (:require [ot.crossover.transforms :as transforms]
             [clojure.string :as str]
             [hiccup.page :as hic-p]))
