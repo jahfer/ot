@@ -1,4 +1,4 @@
-(ns ot.documents-test
+(ns ot.crossover.documents-test
   (:require [clojure.test :refer :all]
             [ot.crossover.transforms :refer :all]
             [ot.crossover.documents :refer :all]))
