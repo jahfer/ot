@@ -13,7 +13,7 @@
 ;; Define intial state of app
 (def app-state (atom {:editor {:text "Hello world"}}))
 
-
+;; Entrance point
 (defn ot-app [app owner]
   (reify
     om/IWillMount
@@ -29,4 +29,5 @@
             (let [comm (om/get-state owner :comm)]
               (om/build editor/component app {:opts {:comm comm}})))))
 
+;; Let's kick things off
 (om/root app-state ot-app (sel1 :#app))

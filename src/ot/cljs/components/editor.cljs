@@ -7,6 +7,10 @@
   (:require-macros [cljs.core.async.macros :refer [go]])
   (:use-macros [dommy.macros :only [node sel sel1]]))
 
+(def confirmation (chan))
+(def queue (chan))
+(def outbound (chan))
+
 (defn component [app owner opts]
   (reify
     om/IInitState
@@ -15,11 +19,10 @@
     om/IWillMount
     (will-mount [_]
                  (ws/init!)
-                 (let [{:keys [comm]} opts]
-                  (ws/event-chan comm (sel1 :#editor) :keypress)
-                  (go (while true
-                        (let [key (<! comm)]
-                          (.send ws/socket (pr-str (transforms/op :ins key))))))))
+                 (ws/event-chan queue (sel1 :#editor) :keypress)
+                 (go (while true
+                       (let [key (<! outbound)]
+                         (.send ws/socket (pr-str (transforms/op :ins key)))))))
     om/IDidUpdate
     (did-update [_ _ _ _])
     om/IRenderState
@@ -28,4 +31,14 @@
         (dom/textarea #js {:ref "editor"
                            :id "editor"
                            :defaultValue (-> app :editor :text)
-                           :onKeyPress #(put! comm (.-key %))})))))
+                           :onKeyPress #(put! queue (.-key %))})))))
+
+(defn init-queue []
+  (go
+    (put! outbound (<! queue))
+    (go (while true
+          (.log js/console "Waiting...")
+          (let [_ (<! confirmation)]
+            (.log js/console "Received confirmation, sending outbound!"))))))
+
+(init-queue)
