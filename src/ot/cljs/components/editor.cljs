@@ -15,14 +15,17 @@
   (reify
     om/IInitState
     (init-state [_]
-                (.log js/console "editor initialized"))
+                (.log js/console "Editor initialized"))
     om/IWillMount
     (will-mount [_]
-                 (ws/init!)
-                 (ws/event-chan queue (sel1 :#editor) :keypress)
-                 (go (while true
-                       (let [key (<! outbound)]
-                         (.send ws/socket (pr-str (transforms/op :ins key)))))))
+                (ws/init! {:my :data})
+                (ws/event-chan queue (sel1 :#editor) :keypress)
+                (go (while true
+                      (let [key (<! outbound)]
+                        (.send ws/socket (pr-str (transforms/op :ins key))))))
+                (go (while true
+                      (let [response (<! ws/recv)]
+                        (put! confirmation response)))))
     om/IDidUpdate
     (did-update [_ _ _ _])
     om/IRenderState
@@ -34,11 +37,14 @@
                            :onKeyPress #(put! queue (.-key %))})))))
 
 (defn init-queue []
-  (go
-    (put! outbound (<! queue))
-    (go (while true
-          (.log js/console "Waiting...")
-          (let [_ (<! confirmation)]
-            (.log js/console "Received confirmation, sending outbound!"))))))
+  (go (while true
+        (.log js/console "Waiting for confirmation from server...")
+        (let [_ (<! confirmation)]
+          (.log js/console "Received confirmation, sending outbound")
+          (put! outbound (<! queue))))))
 
-(init-queue)
+(defn init []
+  (put! confirmation (transforms/op :ret 0))
+  (init-queue))
+
+(init)

@@ -7,7 +7,7 @@
   (:use-macros [dommy.macros :only [node sel sel1]]))
 
 (def send (chan))
-(def receive (chan))
+(def recv (chan))
 
 (def ws-url "ws://localhost:3000/ws")
 (def socket (new js/WebSocket ws-url))
@@ -19,15 +19,14 @@
      :unsubscribe #(dommy/unlisten! el type writer)}))
 
 (defn make-receiver []
-  (set! (.-onmessage socket) (fn [msg] (put! receive msg)))
-  (add-message))
+  (set! (.-onmessage socket) (fn [msg] (put! recv msg))))
 
-(defn add-message []
-  (go
-   (while true
-     (let [msg (<! receive)
-           raw-data (.-data msg)
-           data (reader/read-string raw-data)]
-       (.log js/console (str data))))))
+;; (defn add-message []
+;;   (go
+;;    (while true
+;;      (let [msg (<! recv)
+;;            raw-data (.-data msg)
+;;            data (reader/read-string raw-data)]
+;;        (.log js/console (str data))))))
 
 (defn init! [] (make-receiver))
