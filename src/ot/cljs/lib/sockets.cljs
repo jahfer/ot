@@ -12,8 +12,8 @@
 (def ws-url "ws://localhost:3000/ws")
 (def socket (new js/WebSocket ws-url))
 
-(defn event-chan [c el type]
-  (let [writer #(put! c %)]
+(defn event-chan [c el type transform]
+  (let [writer #(put! c (transform %))]
     (dommy/listen! el type writer)
     {:chan c
      :unsubscribe #(dommy/unlisten! el type writer)}))
@@ -23,13 +23,5 @@
 
 (defn send [data]
   (.send socket data))
-
-;; (defn add-message []
-;;   (go
-;;    (while true
-;;      (let [msg (<! recv)
-;;            raw-data (.-data msg)
-;;            data (reader/read-string raw-data)]
-;;        (.log js/console (str data))))))
 
 (defn init! [] (make-receiver))

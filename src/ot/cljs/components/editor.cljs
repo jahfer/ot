@@ -3,7 +3,7 @@
             [om.dom :as dom :include-macros true]
             [cljs.core.async :refer [put! chan <!]]
             [ot.crossover.transforms :as transforms]
-            ;[ot.cljs.lib.sockets :as ws]
+            [ot.cljs.lib.sockets :as ws]
             [ot.cljs.lib.util :as util]
             [ot.cljs.lib.operation-queue :as queue])
   (:require-macros [cljs.core.async.macros :refer [go]])
@@ -14,9 +14,9 @@
     om/IInitState
     (init-state [_]
                 (.log js/console "Initializing editor"))
-    om/IWillMount
-    (will-mount [_])
-                ;(ws/event-chan queue/buffer (sel1 :#editor) :keypress))
+    om/IDidMount
+    (did-mount [_ node]
+               (ws/event-chan queue/buffer node :keypress #(str (.-keyCode %))))
     om/IDidUpdate
     (did-update [_ _ _ _])
     om/IRenderState
@@ -24,7 +24,8 @@
       (let [{:keys [comm]} opts]
         (dom/textarea #js {:ref "editor"
                            :id "editor"
-                           :defaultValue (-> app :editor :text)
-                           :onKeyPress #(put! queue/buffer (.-key %))})))))
+                           :defaultValue (-> app :editor :text)})))))
+                           ;:defaultValue (-> app :editor :text)
+                           ;:onKeyPress #(put! queue/buffer (.-key %))})))))
 
 (queue/init!)
