@@ -17,7 +17,7 @@
   (reify
     om/IInitState
     (init-state [_]
-                (.log js/console "Editor initialized"))
+                (.log js/console "Initializing editor"))
     om/IWillMount
     (will-mount [_]
                 (ws/init!)
@@ -37,9 +37,10 @@
   to an operation, and transforms to the literal string
   version before sending."
   []
-  (.log js/console "Initializing outbound queue")
+  (.log js/console "[outbound-q] Initializing")
   (go (while true
         (let [key (<! outbound)]
+          (.log js/console "[outbound-q] Sending operation to the server")
           (-> (transforms/op :ins key)
               (pr-str)
               (ws/send))))))
@@ -49,12 +50,14 @@
   Waits for confirmation on previous operation before
   sending the new operation."
   []
-  (.log js/console "Initializing buffer queue")
+  (.log js/console "[buffer-q] Initializing")
   (go (while true
-        (.log js/console "Waiting for confirmation from server...")
+        (.log js/console "[buffer-q] Waiting on server confirmation")
         (let [_ (<! confirmation)]
-          (.log js/console "Received confirmation, sending outbound")
-          (put! outbound (<! queue))))))
+          (.log js/console "[buffer-q] Received confirmation, waiting for outbound items")
+          (let [out (<! queue)]
+            (.log js/console "[buffer-q] Sending operation to outbound")
+            (put! outbound out))))))
 
 (defn inbound-queue
   "Routine to receive operations from server. When the
@@ -62,7 +65,7 @@
   owned-ids queue, and added to the queue of confirmed
   operations."
   []
-  (.log js/console "Initializing inbound queue")
+  (.log js/console "[inbound-q] Initializing")
   (go (while true
         (let [response (<! ws/recv)
               id (:id response)]
