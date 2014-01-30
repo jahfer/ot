@@ -16,6 +16,7 @@
                 (.log js/console "Initializing editor"))
     om/IDidMount
     (did-mount [_ node]
+               ;; TODO: Handle storage of ws/event-chan for unsubscription
                (ws/event-chan queue/buffer node :keypress #(str (.-keyCode %))))
     om/IDidUpdate
     (did-update [_ _ _ _])
@@ -25,7 +26,5 @@
         (dom/textarea #js {:ref "editor"
                            :id "editor"
                            :defaultValue (-> app :editor :text)})))))
-                           ;:defaultValue (-> app :editor :text)
-                           ;:onKeyPress #(put! queue/buffer (.-key %))})))))
 
 (queue/init!)
