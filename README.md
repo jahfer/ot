@@ -4,7 +4,7 @@
 ## Usage
 1. **Auto-compile ClojureScript** - `lein cljsbuild auto dev`
 
-2. **Run Server** - `lein ring server` in a new terminal window
+2. **Run Server** - `lein run` in a new terminal window
 
 ## References
 - [Understanding and Applying Operational Transformation](http://www.codecommit.com/blog/java/understanding-and-applying-operational-transformation)
