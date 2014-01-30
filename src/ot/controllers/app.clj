@@ -25,4 +25,4 @@
  (while true
    (let [data (<! input)
           parsed (clojure.edn/read-string data)]
-         (println "type:" (:type parsed) "val:" (:val parsed)))))
+         (println "id:" (:id parsed) "type:" (:type (:op parsed)) "val:" (:val (:op parsed))))))

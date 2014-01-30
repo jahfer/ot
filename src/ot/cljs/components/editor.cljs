@@ -11,7 +11,7 @@
 (def confirmation (chan))
 (def queue (chan))
 (def outbound (chan))
-(def owned-ids [])
+(def owned-ids '())
 
 (defn component [app owner opts]
   (reify
@@ -37,20 +37,20 @@
   to an operation, and transforms to the literal string
   version before sending."
   []
-  (.log js/console "[outbound-q] Initializing")
   (go (while true
-        (let [key (<! outbound)]
+        (let [key (<! outbound)
+              id (js/md5 key)
+              op (transforms/op :ins key)
+              data (pr-str {:id id :op op})]
           (.log js/console "[outbound-q] Sending operation to the server")
-          (-> (transforms/op :ins key)
-              (pr-str)
-              (ws/send))))))
+          (def owned-ids (conj owned-ids id))
+          (ws/send data)))))
 
 (defn buffer-queue
   "Blocking routine that throttles outbound operations.
   Waits for confirmation on previous operation before
   sending the new operation."
   []
-  (.log js/console "[buffer-q] Initializing")
   (go (while true
         (.log js/console "[buffer-q] Waiting on server confirmation")
         (let [_ (<! confirmation)]
@@ -65,13 +65,17 @@
   owned-ids queue, and added to the queue of confirmed
   operations."
   []
-  (.log js/console "[inbound-q] Initializing")
   (go (while true
         (let [response (<! ws/recv)
-              id (:id response)]
-          (when (util/in? owned-ids id)
-            (def owned-ids (remove #{id} owned-ids))
-            (put! confirmation response))))))
+              data (cljs.reader/read-string (.-data response))
+              id (:id data)]
+          (.log js/console "[inbound-queue] Received operation from server")
+          (if (util/in? owned-ids id)
+            (do
+              (.log js/console "[inbound-queue] Operation is owned by self")
+              (def owned-ids (remove #{id} owned-ids))
+              (put! confirmation response))
+            true)))))
 
 (defn init []
   (put! confirmation true)
