@@ -6,7 +6,7 @@
             [jayq.util :as jq-util]
             [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]
-            [ot.cljs.util.sockets :as ws]
+            [ot.cljs.lib.sockets :as ws]
             [ot.cljs.components.editor :as editor])
   (:use-macros [dommy.macros :only [node sel sel1]]))
 

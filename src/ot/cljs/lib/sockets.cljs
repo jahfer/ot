@@ -1,4 +1,4 @@
-(ns ot.cljs.util.sockets
+(ns ot.cljs.lib.sockets
   (:require-macros [cljs.core.async.macros :refer [go]])
   (:require [cljs.core.async :refer [put! chan <!]]
             [cljs.reader :as reader]
