@@ -7,3 +7,8 @@
     (on ($ el) type
         (fn [e] (put! out e)))
     out))
+
+(defn in?
+  "true if seq contains elm"
+  [seq elm]
+  (some #(= elm %) seq))

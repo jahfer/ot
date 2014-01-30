@@ -21,6 +21,9 @@
 (defn make-receiver []
   (set! (.-onmessage socket) (fn [msg] (put! recv msg))))
 
+(defn send [data]
+  (.send socket data))
+
 ;; (defn add-message []
 ;;   (go
 ;;    (while true
