@@ -12,12 +12,14 @@
 (def ws-url "ws://localhost:3000/ws")
 (def socket (new js/WebSocket ws-url))
 
-;; TODO: Make 'transform' optional
-(defn event-chan [c el type transform]
-  (let [writer #(put! c (transform %))]
-    (dommy/listen! el type writer)
-    {:chan c
-     :unsubscribe #(dommy/unlisten! el type writer)}))
+(defn event-chan
+  ([c el type]
+   (event-chan c el type #(%)))
+  ([c el type transform]
+   (let [writer #(put! c (transform %))]
+     (dommy/listen! el type writer)
+     {:chan c
+      :unsubscribe #(dommy/unlisten! el type writer)})))
 
 (defn make-receiver []
   (set! (.-onmessage socket) (fn [msg] (put! recv msg))))
