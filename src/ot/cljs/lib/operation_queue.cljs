@@ -1,14 +1,13 @@
 (ns ot.cljs.lib.operation-queue
   (:require [cljs.core.async :refer [put! chan <!]]
-            [ot.crossover.transforms :as transforms]
             [ot.cljs.lib.sockets :as ws]
-            [ot.cljs.lib.util :as util])
+            [ot.cljs.lib.util :as util]
+            [om.core :as om :include-macros true])
   (:require-macros [cljs.core.async.macros :refer [go]]))
 
 (def confirmation (chan))
 (def buffer (chan))
 (def outbound (chan))
-(def owned-ids '())
 
 (defn outbound-queue
   "Routine for sending commands to the server. Converts
@@ -16,12 +15,8 @@
   version before sending."
   []
   (go (while true
-        (let [key (<! outbound)
-              id (js/md5 key)
-              op (transforms/op :ins key)
-              data (pr-str {:id id :op op})]
-          (.log js/console "[outbound-q] Sending operation to the server")
-          (def owned-ids (conj owned-ids id))
+        (let [data (<! outbound)]
+          (.log js/console "[oq] Sending operation to the server")
           (ws/send data)))))
 
 (defn buffer-queue
@@ -32,7 +27,7 @@
   (go (while true
         (let [_ (<! confirmation)]
           (let [out (<! buffer)]
-            (.log js/console "[buffer-q] Sending operation to outbound")
+            (.log js/console "[bq] Sending operation to outbound")
             (put! outbound out))))))
 
 (defn inbound-queue
@@ -40,23 +35,24 @@
   ID is owned by the client, it is removed from the
   owned-ids queue, and added to the queue of confirmed
   operations."
-  []
+  [owner]
   (go (while true
         (let [response (<! ws/recv)
               data (cljs.reader/read-string (.-data response))
-              id (:id data)]
-          (.log js/console "[inbound-queue] Received operation from server")
+              id (:id data)
+              owned-ids (om/get-state owner :owned-ids)]
+          (.log js/console "[iq] Received operation from server")
           (if (util/in? owned-ids id)
             (do
-              (.log js/console "[inbound-queue] Confirmed operation roundtrip success")
-              (def owned-ids (remove #{id} owned-ids))
+              (.log js/console "[iq] Confirmed operation roundtrip success")
+              (om/set-state! owner :owned-ids (remove #{id} owned-ids))
               (put! confirmation response))
             true)))))
 
 
-(defn init! []
+(defn init! [owner]
   (ws/init!)
   (put! confirmation true)
-  (inbound-queue)
+  (inbound-queue owner)
   (buffer-queue)
   (outbound-queue))

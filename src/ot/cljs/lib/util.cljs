@@ -12,3 +12,6 @@
   "true if seq contains elm"
   [seq elm]
   (some #(= elm %) seq))
+
+(defn keyFromCode [code]
+  (.fromCharCode js/String code))

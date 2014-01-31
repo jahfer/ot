@@ -11,7 +11,7 @@
   (:use-macros [dommy.macros :only [node sel sel1]]))
 
 ;; Define intial state of app
-(def app-state (atom {:editor {:text "Hello world"}}))
+(def app-state (atom {}))
 
 ;; Entrance point
 (defn ot-app [app owner]
@@ -27,7 +27,7 @@
     om/IRender
     (render [_]
             (let [comm (om/get-state owner :comm)]
-              (om/build editor/component app {:opts {:comm comm}})))))
+              (om/build editor/editor-view app {:opts {:comm comm}})))))
 
 ;; Let's kick things off
 (om/root app-state ot-app (sel1 :#app))
