@@ -1,20 +1,14 @@
 (ns ot.crossover.documents
   (:require [ot.crossover.transforms :as transforms]))
 
-(require 'digest)
-(use '[clojure.string :only (join)])
-
-(defn doc-id [contents]
-  (digest/md5 contents))
-
 (defn apply-ins [trans doc]
   (str (:val trans) doc))
 
 (defn apply-ret [trans doc]
-  (let [n (trans :val)
+  (let [n (:val trans)
         head (take n doc)
-        tail (nthrest doc n)]
-    [(join head) (join tail)]))
+        tail (drop n doc)]
+    [(apply str head) (apply str tail)]))
 
 (defn apply-ops [ops doc]
   (let [operation (first ops)]
