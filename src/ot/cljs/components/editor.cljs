@@ -21,6 +21,17 @@
     (send-insert owner {:key key :id id})
     (om/set-state! owner :text new-text)))
 
+(defn handle-incoming [owner]
+  "Processes the inbound queue, applying the operations to
+  the current document state."
+  (go (while true
+        (let [raw (<! queue/inbound)
+              data (cljs.reader.read-string (.-data raw))
+              op (:op data)
+              text (om/get-state owner :text)
+              applied (doc/apply-ops [op] text)]
+          (om/set-state! owner :text applied)))))
+
 (defn send-insert
   "Pushes the operation to the outbound buffer and updates
   the owned-ids with the new operation ID and the doc-id with
@@ -43,13 +54,7 @@
                  :doc-id (js/md5 "go")})
     om/IWillMount
     (will-mount [this]
-                (go (while true
-                      (let [raw (<! queue/inbound)
-                            data (cljs.reader.read-string (.-data raw))
-                            op (:op data)
-                            text (om/get-state owner :text)
-                            applied (doc/apply-ops [op] text)]
-                        (om/set-state! owner :text applied)))))
+                (handle-incoming owner))
     om/IDidMount
     (did-mount [this node]
                (queue/init! owner))
