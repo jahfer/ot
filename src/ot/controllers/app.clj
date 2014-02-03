@@ -28,9 +28,6 @@
  (while true
    (let [data (<! input)
          parsed (clojure.edn/read-string data)]
-         (println "id:" (:id parsed)
-                  "parent-id:" (:parent-id parsed)
-                  "type:" (:type (:op parsed))
-                  "val:" (:val (:op parsed)))
+     (println data)
      (doseq [client @clients]
        (send! (key client) data)))))
