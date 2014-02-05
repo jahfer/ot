@@ -15,3 +15,6 @@
 
 (defn keyFromCode [code]
   (.fromCharCode js/String code))
+
+(defn toInt [num]
+  (js/parseInt num 10))
