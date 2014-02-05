@@ -10,25 +10,26 @@
   (:require-macros [cljs.core.async.macros :refer [go]])
   (:use-macros [dommy.macros :only [node sel sel1]]))
 
+(def cursor (atom 0))
+
 (defn cursor-position
   "gets or sets the current cursor position"
   ([]
   (.-selectionStart (sel1 :#editor)))
   ([new-pos]
    (let [editor (sel1 :#editor)]
-     (set! (.-selectionStart editor) new-pos)
-     (set! (.-selectionEnd editor) new-pos))))
+     (.setSelectionRange editor new-pos new-pos))))
 
 (defn doc-length []
   (.. (sel1 :#editor) -value -length))
 
 (defn gen-insert-op [key]
-  (let [cursor (js/parseInt (cursor-position) 10)
-        retain-before (transforms/op :ret cursor)
+  (let [cursor-loc (util/toInt (cursor-position))
+        retain-before (transforms/op :ret cursor-loc)
         insert (transforms/op :ins key)
         ; Kind of a hack because we don't know the new document length
         ; Only works if we :ins by a single char at a time
-        chars-remaining (- (doc-length) cursor)
+        chars-remaining (- (doc-length) cursor-loc)
         retain-after (transforms/op :ret chars-remaining)]
     [retain-before insert retain-after]))
 
@@ -55,11 +56,10 @@
   (let [key (util/keyFromCode (.-which e))
         operations (gen-insert-op key)
         new-text (doc/apply-ops operations text)
-        cached-cursor (cursor-position)
         id (js/md5 new-text)]
     (send-insert owner {:operations operations :id id})
-    (om/set-state! owner :text new-text)
-    (cursor-position cached-cursor)))
+    (swap! cursor #(-> (cursor-position) util/toInt inc))
+    (om/set-state! owner :text new-text)))
 
 (defn handle-incoming
   "Processes the inbound queue, applying the operations to
@@ -72,9 +72,7 @@
               text (om/get-state owner :text)
               cached-cursor (cursor-position)
               new-text (doc/apply-ops ops text)]
-          (om/set-state! owner :text new-text)
-          (.log js/console "Setting cursor to" cached-cursor)
-          (cursor-position cached-cursor)))))
+          (om/set-state! owner :text new-text)))))
 
 
 (defn editor-view [app owner]
@@ -90,6 +88,9 @@
     om/IDidMount
     (did-mount [this node]
                (queue/init! owner))
+    om/IDidUpdate
+    (did-update [this prev-props prev-state root-node]
+                (cursor-position @cursor))
     om/IRenderState
     (render-state [this state]
                   (dom/textarea #js {:id "editor"
