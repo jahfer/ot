@@ -1,12 +1,26 @@
 body {
-    background-color: Cornsilk;
+  margin: 0;
 }
 
-#header-links {
-    background-color: BurlyWood;
-    padding: 10px;
+.container {
+  margin: 0 auto;
+  width: 500px;
 }
 
-h1 {
-    color: CornflowerBlue;
+.page-title {
+  padding-bottom: 5px;
+  margin-top: 20px;
+  margin-bottom: 0;
+  font-family: "Avenir Next";
+  text-transform: uppercase;
+  font-size: 12px;
+  letter-spacing: 0.05em;
+}
+
+#editor {
+  width: 500px;
+  height: 150px;
+  border: 1px solid #ccc;
+  padding: 10px;
+  box-sizing: border-box;
 }
