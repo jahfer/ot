@@ -10,6 +10,8 @@
   (:require-macros [cljs.core.async.macros :refer [go]])
   (:use-macros [dommy.macros :only [node sel sel1]]))
 
+(def rejected-keys ["Up" "Down" "Left" "Right"])
+
 (def cursor (atom 0))
 
 (defn cursor-position
@@ -53,13 +55,14 @@
   pressed, and the new document id. Sets the textarea value
   to the new result and dispatches an insert to the server."
   [e owner {:keys [text]}]
-  (let [key (util/keyFromCode (.-which e))
-        operations (gen-insert-op key)
-        new-text (doc/apply-ops operations text)
-        id (js/md5 new-text)]
-    (send-insert owner {:operations operations :id id})
-    (swap! cursor #(-> (cursor-position) util/toInt inc))
-    (om/set-state! owner :text new-text)))
+  (when (not (util/in? rejected-keys (.-key e)))
+    (let [key (util/keyFromCode (.-which e))
+          operations (gen-insert-op key)
+          new-text (doc/apply-ops operations text)
+          id (js/md5 new-text)]
+      (send-insert owner {:operations operations :id id})
+      (swap! cursor #(-> (cursor-position) util/toInt inc))
+      (om/set-state! owner :text new-text))))
 
 (defn handle-incoming
   "Processes the inbound queue, applying the operations to
@@ -79,9 +82,9 @@
   (reify
     om/IInitState
     (init-state [this]
-                {:text "go"
+                {:text ""
                  :owned-ids []
-                 :doc-id (js/md5 "go")})
+                 :doc-id (js/md5 "")})
     om/IWillMount
     (will-mount [this]
                 (handle-incoming owner))
