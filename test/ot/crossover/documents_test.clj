@@ -23,5 +23,5 @@
 
 (deftest apply-ops-test
   (testing "Applying a series of operations results in the correct end document"
-    (let [result (apply-ops op-tom document)]
+    (let [result (apply-ops document op-tom)]
       (is (= result "roam!")))))

@@ -58,7 +58,7 @@
   (when (not (util/in? rejected-keys (.-key e)))
     (let [key (util/keyFromCode (.-which e))
           operations (gen-insert-op key)
-          new-text (doc/apply-ops operations text)
+          new-text (doc/apply-ops text operations)
           id (js/md5 new-text)]
       (send-insert owner {:operations operations :id id})
       (swap! cursor #(-> (cursor-position) util/toInt inc))
@@ -74,7 +74,7 @@
               ops (:ops data)
               text (om/get-state owner :text)
               cached-cursor (cursor-position)
-              new-text (doc/apply-ops ops text)]
+              new-text (doc/apply-ops text ops)]
           (om/set-state! owner :text new-text)))))
 
 

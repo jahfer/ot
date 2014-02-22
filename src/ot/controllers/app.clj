@@ -1,6 +1,7 @@
 (ns ot.controllers.app
   (:use [org.httpkit.server])
-  (:require [clojure.core.async :refer [go put! <! chan]]))
+  (:require [clojure.core.async :refer [go put! <! chan]]
+            [ot.crossover.documents :refer :all]))
 
 (defn generate-response [data & [status]]
   {:status (or status 200)
@@ -13,6 +14,19 @@
 
 (def input (chan))
 (def clients (atom {}))
+(def document (atom ""))
+
+(defn broadcast [msg]
+  (doseq [client @clients]
+    (send! (key client) msg)))
+
+(go
+ (while true
+   (let [data (<! input)
+         parsed (clojure.edn/read-string data)
+         ops (:ops parsed)]
+     (swap! document apply-ops ops)
+     (broadcast data))))
 
 (defn async-handler [req]
   (with-channel req ch
@@ -23,11 +37,3 @@
     (on-close ch (fn [status]
                    (swap! clients dissoc ch)
                    (println "channel closed: " status)))))
-
-(go
- (while true
-   (let [data (<! input)
-         parsed (clojure.edn/read-string data)]
-     (println data)
-     (doseq [client @clients]
-       (send! (key client) data)))))

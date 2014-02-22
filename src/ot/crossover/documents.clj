@@ -10,13 +10,14 @@
         tail (drop n doc)]
     [(apply str head) (apply str tail)]))
 
-(defn apply-ops [ops doc]
+(defn apply-ops [doc ops]
   (let [operation (first ops)]
     (cond
      (transforms/insert? operation)
-       (recur (-> (rest ops)
-                  (conj (transforms/op :ret 1))) (apply-ins operation doc))
+       (recur (apply-ins operation doc)
+              (-> (rest ops)
+                  (conj (transforms/op :ret 1))))
      (transforms/retain? operation)
        (let [[head tail] (apply-ret operation doc)]
-         (str head (apply-ops (rest ops) tail)))
+         (str head (apply-ops tail (rest ops))))
      :else doc)))
