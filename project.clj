@@ -8,6 +8,8 @@
   :dependencies [[org.clojure/clojure "1.5.1"]
                  [org.clojure/clojurescript "0.0-2138"]
                  [org.clojure/core.async "0.1.267.0-0d7780-alpha"]
+                 [org.clojure/tools.logging "0.2.6"]
+                 [log4j/log4j "1.2.16"]
                  [compojure "1.1.6"]
                  [hiccup "1.0.2"]
                  [org.clojure/java.jdbc "0.2.3"]

@@ -3,7 +3,8 @@
         [ring.middleware.edn]
         [org.httpkit.server])
   (:require [ring.middleware.reload :as reload]
-            [ot.routes.router :as routes]))
+            [ot.routes.router :as routes]
+            [clojure.tools.logging :as log]))
 
 
 (def in-dev? true)
@@ -13,8 +14,9 @@
       wrap-edn-params))
 
 (defn start-server [port]
+  (log/info "Initializing HTTP server")
   (let [handler (if in-dev?
                   (reload/wrap-reload (site #'app))
                   (site #'app))]
     (run-server handler {:port port})
-    (println "Server is running...")))
+    (log/info "Server is running...")))

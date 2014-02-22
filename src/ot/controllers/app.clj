@@ -1,6 +1,7 @@
 (ns ot.controllers.app
   (:use [org.httpkit.server])
   (:require [clojure.core.async :refer [go put! <! chan]]
+            [clojure.tools.logging :as log]
             [ot.crossover.documents :refer :all]))
 
 (defn generate-response [data & [status]]
@@ -9,7 +10,7 @@
    :body (pr-str data)})
 
 (defn live-handler [type val]
-  (println (str "type: " type " val: " val))
+  (log/info (str "type: " type " val: " val))
   (generate-response {:hello type}))
 
 (def input (chan))
@@ -25,13 +26,15 @@
    (let [data (<! input)
          parsed (clojure.edn/read-string data)
          ops (:ops parsed)]
+     (log/info data)
      (swap! document apply-ops ops)
+     (log/info "new state" @document)
      (broadcast data))))
 
 (defn async-handler [req]
   (with-channel req ch
     (swap! clients assoc ch true)
-    (println "New WebSocket channel:" ch)
+    (log/info "New WebSocket channel:" ch)
     (on-receive ch (fn [data]
                      (put! input data)))
     (on-close ch (fn [status]
