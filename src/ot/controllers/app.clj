@@ -18,18 +18,20 @@
 (def document (atom ""))
 
 (defn broadcast [msg]
+    (log/debug "emitting message to client client" msg)
   (doseq [client @clients]
     (send! (key client) msg)))
 
-(go
- (while true
-   (let [data (<! input)
-         parsed (clojure.edn/read-string data)
-         ops (:ops parsed)]
-     (log/info data)
-     (swap! document apply-ops ops)
-     (log/info "new state" @document)
-     (broadcast data))))
+(defn handle-incoming []
+  (go
+   (while true
+     (let [data (<! input)
+           parsed (clojure.edn/read-string data)
+           ops (:ops parsed)]
+       (log/info "Received from client:" data)
+       (swap! document apply-ops ops)
+       (log/debug "applied document state:" @document)
+       (broadcast data)))))
 
 (defn async-handler [req]
   (with-channel req ch
@@ -39,4 +41,6 @@
                      (put! input data)))
     (on-close ch (fn [status]
                    (swap! clients dissoc ch)
-                   (println "channel closed: " status)))))
+                   (println "channel closed:" status)))))
+
+(handle-incoming)
