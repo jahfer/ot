@@ -6,7 +6,7 @@
             :url "http://www.eclipse.org/legal/epl-v10.html"}
 
   :dependencies [[org.clojure/clojure "1.5.1"]
-                 [org.clojure/clojurescript "0.0-2138"]
+                 [org.clojure/clojurescript "0.0-2173"]
                  [org.clojure/core.async "0.1.267.0-0d7780-alpha"]
                  [org.clojure/tools.logging "0.2.6"]
                  [log4j/log4j "1.2.16"]
@@ -17,7 +17,7 @@
                  [jayq "2.5.0"]
                  [prismatic/dommy "0.1.2"]
                  [fogus/ring-edn "0.2.0"]
-                 [om "0.2.3"]
+                 [om "0.5.1"]
                  [com.facebook/react "0.8.0.1"]
                  [ring/ring-devel "1.1.8"]
                  [ring/ring-core "1.1.8"]

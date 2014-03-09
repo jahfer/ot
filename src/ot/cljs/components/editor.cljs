@@ -47,9 +47,6 @@
     (om/set-state! owner :owned-ids (conj owned-ids id))
     (om/set-state! owner :doc-id id)))
 
-; TODO: refactor so handle-keypress and handle-incoming both
-;       use doc/apply-ops. handle-keypress should generate
-;       the operation string to push to send-insert.
 (defn handle-keypress
   "Manages user input into the editor. Determines the key
   pressed, and the new document id. Sets the textarea value
@@ -89,10 +86,10 @@
     (will-mount [this]
                 (handle-incoming owner))
     om/IDidMount
-    (did-mount [this node]
+    (did-mount [this]
                (queue/init! owner))
     om/IDidUpdate
-    (did-update [this prev-props prev-state root-node]
+    (did-update [this prev-props prev-state]
                 (cursor-position @cursor))
     om/IRenderState
     (render-state [this state]

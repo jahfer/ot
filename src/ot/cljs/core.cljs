@@ -23,11 +23,13 @@
     om/IWillUpdate
     (will-update [_ _ _])
     om/IDidUpdate
-    (did-update [_ _ _ _])
+    (did-update [_ _ _])
     om/IRender
     (render [_]
             (let [comm (om/get-state owner :comm)]
-              (om/build editor/editor-view app {:opts {:comm comm}})))))
+              (om/build editor/editor-view app
+                        {:opts {:comm comm}})))))
 
 ;; Let's kick things off
-(om/root app-state ot-app (sel1 :#app))
+(om/root ot-app app-state
+         {:target (sel1 :#app)})
