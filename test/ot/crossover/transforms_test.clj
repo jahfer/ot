@@ -39,3 +39,17 @@
           expect-ops2' [(op :ret 2) (op :ret 1) (op :ins "t")]]
       (is (= a' expect-ops1'))
       (is (= b' expect-ops2')))))
+
+(deftest compress-test
+  (testing "#compress will join all neighboring like items"
+    (let [ops1 [(op :ret 2) (op :ret 1) (op :ins "a") (op :ret 1) (op :ret 3)]
+          ops2 [(op :ret 1) (op :ret 1) (op :ret 1) (op :ret 1) (op :ins "b")]
+          result1 (compress ops1)
+          result2 (compress ops2)]
+      (is (= result1 [(op :ret 3) (op :ins "a") (op :ret 4)]))
+      (is (= result2 [(op :ret 4) (op :ins "b")])))))
+
+(deftest compose-test
+  (testing "Composing two lists of operations results in a single list of all combined operations"
+    (let [comp (compose [(op :ret 1) (op :ins "o")] [(op :ret 2) (op :ins "t")])]
+      (is (= comp [(op :ret 1) (op :ins "o") (op :ins "t")])))))
