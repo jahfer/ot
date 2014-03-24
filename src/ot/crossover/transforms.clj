@@ -9,7 +9,7 @@
 (defn retain [value]
   [(op :ret value) (op :ret value)])
 
-(def mismatched-op-lengths (Exception. "Mismatched operation lengths"))
+;(def mismatched-op-lengths (Exception. "Mismatched operation lengths"))
 
 (defn conj-ops [op-lists new-ops]
   (map conj op-lists new-ops))
@@ -46,6 +46,18 @@
 (defn start-index [ops]
   (if (retain? (first ops)) (:val (first ops)) 0))
 
+(defn merge-retains [& ops]
+  (op :ret (reduce + (map :val ops))))
+
+(defn compress [ops]
+  (loop [ops ops, acc []]
+    (if (empty? ops)
+      acc
+      (let [op1 (first ops), op2 (second ops)]
+        (if (and (retain? op1) (retain? (peek acc)))
+          (recur (next ops) (conj (pop acc) (merge-retains (peek acc) op1)))
+          (recur (next ops) (conj acc op1)))))))
+
 (defn gen-inverse-ops [ops1 ops2 ops']
   (cond
    (insert? (first ops1))
@@ -63,7 +75,8 @@
      (let [[ops1 ops2 result] (retain-ops ops1 ops2)]
        [ops1 ops2 (assoc-op result ops')])
    :else
-     (throw mismatched-op-lengths)))
+     nil))
+     ;(throw mismatched-op-lengths)))
 
 (defn transform [a b]
   (loop [ops1 a, ops2 b, ops' [[] []]]
@@ -82,8 +95,8 @@
        [ops1 ops2 (conj composed (first result))])
    (and (insert? (first ops1)) (retain? (first ops2)))
      [(rest ops1) (rest ops2) (conj composed (first ops1))]
-   :else
-     (throw (Exception. "Operations are not composable"))))
+   :else nil))
+     ;(throw (Exception. "Operations are not composable"))))
 
 (defn simplify [ops]
   (let [first-op (first ops)]
@@ -115,17 +128,6 @@
       (if (or (seq ops1) (seq ops2))
         (let [[ops1 ops2 composed] (gen-composed-ops ops1 ops2 composed)]
           (recur ops1 ops2 composed))
-        composed))
-  (throw (Exception. "Operations are not composable"))))
+        composed))))
+  ;(throw (Exception. "Operations are not composable"))))
 
-(defn merge-retains [& ops]
-  (op :ret (reduce + (map :val ops))))
-
-(defn compress [ops]
-  (loop [ops ops, acc []]
-    (if (empty? ops)
-      acc
-      (let [op1 (first ops), op2 (second ops)]
-        (if (and (retain? op1) (retain? (peek acc)))
-          (recur (next ops) (conj (pop acc) (merge-retains (peek acc) op1)))
-          (recur (next ops) (conj acc op1)))))))

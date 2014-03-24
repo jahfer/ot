@@ -6,7 +6,6 @@
             [dommy.core :as dommy])
   (:use-macros [dommy.macros :only [node sel sel1]]))
 
-(def send (chan))
 (def recv (chan))
 
 (def ws-url "ws://localhost:3000/ws")

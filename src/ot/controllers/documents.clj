@@ -19,8 +19,6 @@
       (let [data (<! input)
             parsed-data (clojure.edn/read-string data)]
         (log/info "Received from client:" data)
-        (swap! document apply-ops (:ops parsed-data))
-        (log/debug "applied document state:" @document)
         (broadcast data)))))
 
 (defn async-handler [req]

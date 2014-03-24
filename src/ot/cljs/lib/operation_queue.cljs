@@ -2,23 +2,21 @@
   (:require [cljs.core.async :refer [put! chan <!]]
             [ot.cljs.lib.sockets :as ws]
             [ot.cljs.lib.util :as util]
-            [om.core :as om :include-macros true])
+            [om.core :as om :include-macros true]
+            [ot.crossover.transforms :as transforms])
   (:require-macros [cljs.core.async.macros :refer [go]]))
 
 (def confirmation (chan))
-(def buffer (chan))
-(def outbound (chan))
 (def inbound (chan))
+(def buffer-has-item (chan))
+(def buffer (atom []))
 
-(defn outbound-queue
-  "Routine for sending commands to the server. Converts
-  to an operation, and transforms to the literal string
-  version before sending."
-  []
-  (go (while true
-        (let [data (<! outbound)]
-          (.log js/console "[oq <-] Sending operation to the server")
-          (ws/send data)))))
+(defn send [op]
+  (.log js/console "Sending operation to buffer for composition")
+  (if (empty? @buffer)
+    (reset! buffer op)
+    (swap! buffer transforms/compose op))
+  (put! buffer-has-item true))
 
 (defn buffer-queue
   "Blocking routine that throttles outbound operations.
@@ -26,10 +24,13 @@
   sending the new operation."
   []
   (go (while true
-        (let [_ (<! confirmation)]
-          (let [out (<! buffer)]
-            (.log js/console "[bq <~] Sending operation to outbound")
-            (put! outbound out))))))
+    (let [_ (<! confirmation)
+          _ (<! buffer-has-item)
+          data {:id id :parent-id parent-id :ops @buffer}
+          serialized (pr-str data)]
+      (.log js/console "[bq <~] Sending operation to the server")
+      (ws/send serialized)
+      (reset! buffer [])))))
 
 (defn recv-queue
   "Routine to receive operations from server. When the
@@ -49,6 +50,7 @@
               (om/set-state! owner :owned-ids (remove #{id} owned-ids))
               (put! confirmation response))
             (put! inbound response))))))
+
 (defn init!
   "Initializes the event queues that manage the in-flow
   and out-flow of events to the editor."
@@ -56,5 +58,4 @@
   (ws/init!)
   (put! confirmation true)
   (recv-queue owner)
-  (buffer-queue)
-  (outbound-queue))
+  (buffer-queue))

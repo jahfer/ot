@@ -40,12 +40,9 @@
   the owned-ids with the new operation ID and the doc-id with
   a hash of the new document contents."
   [owner {:keys [operations id]}]
-  (let [parent-id (om/get-state owner :doc-id)
-        data (pr-str {:id id :ops operations :parent-id parent-id})
-        owned-ids (om/get-state owner :owned-ids)]
-    (go (put! queue/buffer data))
-    (om/set-state! owner :owned-ids (conj owned-ids id))
-    (om/set-state! owner :doc-id id)))
+  (go (queue/send operations))
+  (om/set-state! owner :owned-ids (conj owned-ids id))
+  (om/set-state! owner :doc-id id))
 
 (defn handle-keypress
   "Manages user input into the editor. Determines the key
@@ -67,13 +64,13 @@
   [owner]
   (go (while true
         (let [raw (<! queue/inbound)
+              _ (.log js/console "Processing server input as new operation")
               data (cljs.reader.read-string (.-data raw))
               ops (:ops data)
               text (om/get-state owner :text)
               cached-cursor (cursor-position)
               new-text (doc/apply-ops text ops)]
           (om/set-state! owner :text new-text)))))
-
 
 (defn editor-view [app owner]
   (reify
