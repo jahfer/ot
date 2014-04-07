@@ -1,13 +1,12 @@
 (ns ot.crossover.transforms)
 
-(defn op [type val]
-  {:type type :val val})
+(defrecord Op [type val])
 
 (defn insert [operation]
-  [operation, (op :ret 1)])
+  [operation, (->Op :ret 1)])
 
 (defn retain [value]
-  [(op :ret value) (op :ret value)])
+  [(->Op :ret value) (->Op :ret value)])
 
 ;(def mismatched-op-lengths (Exception. "Mismatched operation lengths"))
 
@@ -47,7 +46,7 @@
   (if (retain? (first ops)) (:val (first ops)) 0))
 
 (defn merge-retains [& ops]
-  (op :ret (reduce + (map :val ops))))
+  (->Op :ret (reduce + (map :val ops))))
 
 (defn compress [ops]
   (loop [ops ops, acc []]
@@ -131,3 +130,18 @@
         composed))))
   ;(throw (Exception. "Operations are not composable"))))
 
+;; ================= EVAL =====================
+
+(def a [(->Op :ins "g")])
+(def b [(->Op :ret 1) (->Op :ins "o")])
+(def c [(->Op :ins "t")])
+(def d [(->Op :ret 1) (->Op :ins "a")])
+(def e [(->Op :ret 3) (->Op :ins "t")])
+
+(let [[a'' c''] (transform a c)
+      [_ c'] (transform (compose a b) c)
+      [_ b'] (transform c'' b)
+      [a' d''] (transform a'' d)
+      buffer (compose b' e)
+      [_ d'] (transform buffer d'')]
+  d')

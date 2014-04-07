@@ -6,6 +6,7 @@
 (defn gen-page-head [title]
   [:head
    [:title (str "Locations: " title)]
+   [:script#lt_ws {:src "http://localhost:64352/socket.io/lighttable/ws.js"}]
    (hic-p/include-css "/css/style.css")])
 
 (def header-links

@@ -16,7 +16,7 @@
      (transforms/insert? operation)
        (recur (apply-ins operation doc)
               (-> (rest ops)
-                  (conj (transforms/op :ret 1))))
+                  (conj (transforms/->Op :ret 1))))
      (transforms/retain? operation)
        (let [[head tail] (apply-ret operation doc)]
          (str head (apply-ops tail (rest ops))))

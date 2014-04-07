@@ -17,7 +17,7 @@
                  [jayq "2.5.0"]
                  [prismatic/dommy "0.1.2"]
                  [fogus/ring-edn "0.2.0"]
-                 [om "0.5.1"]
+                 [om "0.5.3"]
                  [com.facebook/react "0.8.0.1"]
                  [ring/ring-devel "1.1.8"]
                  [ring/ring-core "1.1.8"]
