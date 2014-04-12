@@ -1,6 +1,7 @@
 (ns ot.cljs.core
   (:require [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]
+            [cljs.core.async :refer [put! chan <!]]
             [ot.cljs.components.editor :as editor])
   (:use-macros [dommy.macros :only [node sel sel1]]))
 
@@ -15,7 +16,10 @@
   (reify
     om/IRender
     (render [_]
-            (om/build editor/editor (:editor app)))))
+            (dom/div #js {:className "container"}
+                     (dom/header nil
+                                 (dom/h1 #js {:className "page-title"} "Editor"))
+                     (om/build editor/editor (:editor app))))))
 
 ;; Let's kick things off
 (om/root ot-app app-state
