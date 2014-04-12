@@ -7,31 +7,27 @@
             [ot.cljs.lib.operation-queue :as queue])
   (:require-macros [cljs.core.async.macros :refer [go]]))
 
-(defn update-contents! [operations owner]
-  (let [text (om/get-state owner :text)
+(defn update-contents! [operations cursor]
+  (let [text (get-in @cursor [:input :text])
         new-text (documents/apply-ops text operations)]
-    (.log js/console (documents/apply-ops text operations))
-    (om/set-state! owner :text new-text)
-    (om/set-state! owner :id (js/md5 new-text))))
+    (om/transact! cursor [:input :text] (fn [_] new-text))
+    (om/transact! cursor :id #(js/md5 new-text))
+    (om/transact! cursor :owned-ids (fn [coll] (conj coll (:id @cursor))))))
 
-(defn editor [app owner]
+(defn editor [cursor owner]
   (reify
     om/IInitState
     (init-state [this]
-                {:text "Hello"
-                 :input (chan)
-                 :id nil
-                 :owned-ids []})
+                {:input (chan)})
     om/IWillMount
     (will-mount [this]
                 (let [input (om/get-state owner :input)]
                   (go (loop []
                         (let [operations (<! input)]
-                          (update-contents! operations owner)
+                          (update-contents! operations cursor)
                           (recur))))))
     om/IRenderState
-    (render-state [this {:keys [input text]}]
+    (render-state [this {:keys [input]}]
+                  (.log js/console "rendering editor" (pr-str cursor))
                   (dom/div nil
-                   (om/build input/editor-input app {:opts {:on-keypress handle-keypress
-                                                            :text text}
-                                                     :init-state {:input input}})))))
+                   (om/build input/editor-input (:input cursor) {:init-state {:input input}})))))
