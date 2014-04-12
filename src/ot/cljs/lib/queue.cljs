@@ -1,4 +1,4 @@
-(ns ot.cljs.lib.operation-queue
+(ns ot.cljs.lib.queue
   (:require [cljs.core.async :refer [put! chan <!]]
             [ot.cljs.lib.sockets :as ws]
             [ot.cljs.lib.util :as util]
@@ -13,9 +13,13 @@
 
 (defn send [op]
   (.log js/console "Sending operation to buffer for composition")
+  (.log js/console "--" (pr-str @buffer))
+  (.log js/console "++" (pr-str op))
   (if (empty? @buffer)
     (reset! buffer op)
     (swap! buffer transforms/compose op))
+  (.log js/console "==" (pr-str @buffer))
+  (.log js/console "............................................................")
   (put! buffer-has-item true))
 
 (defn buffer-queue

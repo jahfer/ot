@@ -6,7 +6,7 @@
             [cljs.core.async :refer [put! chan <!]]
             [ot.cljs.lib.sockets :as ws]
             [ot.cljs.lib.util :as util]
-            [ot.cljs.lib.operation-queue :as queue])
+            [ot.cljs.lib.queue :as queue])
   (:require-macros [cljs.core.async.macros :refer [go]])
   (:use-macros [dommy.macros :only [node sel sel1]]))
 
