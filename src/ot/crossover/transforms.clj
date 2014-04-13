@@ -8,8 +8,6 @@
 (defn retain [value]
   [(->Op :ret value) (->Op :ret value)])
 
-;(def mismatched-op-lengths (Exception. "Mismatched operation lengths"))
-
 (defn conj-ops [op-lists new-ops]
   (map conj op-lists new-ops))
 
@@ -75,7 +73,6 @@
        [ops1 ops2 (assoc-op result ops')])
    :else
      nil))
-     ;(throw mismatched-op-lengths)))
 
 (defn transform [a b]
   (loop [ops1 a, ops2 b, ops' [[] []]]
@@ -93,9 +90,15 @@
      (let [[ops1 ops2 result] (retain-ops ops1 ops2)]
        [ops1 ops2 (conj composed (first result))])
    (and (insert? (first ops1)) (retain? (first ops2)))
-     [(rest ops1) (rest ops2) (conj composed (first ops1))]
+     (let [new-ret (dec (:val (first ops2)))
+           ops2 (if (zero? new-ret)
+                  (rest ops2)
+                  (update-head ops2 new-ret))]
+       [(rest ops1) ops2 (conj composed (first ops1))])
+   (insert? (first ops1))
+     (let [result (conj composed (first ops1))]
+       [(rest ops1) ops2 result])
    :else nil))
-     ;(throw (Exception. "Operations are not composable"))))
 
 (defn simplify [ops]
   (let [first-op (first ops)]
@@ -105,30 +108,15 @@
           (retain? first-op) (second ops)
           (retain? (second ops)) first-op
           :else nil)
-      3 (retain-both? first-op (nth ops 2)) (second ops)
+      3 (if (retain-both? first-op (peek ops)) (second ops) nil)
       :else nil)))
 
-(defn composable? [a b]
-  (let [start-a (start-index a)
-        start-b (start-index b)
-        simple-a (simplify a)
-        simple-b (simplify b)]
-    (cond
-     (not (or simple-a simple-b))
-       false
-     (and (insert? simple-a) (insert? simple-b))
-       (= (+ start-a (count(:val simple-a))) start-b)
-     :else
-       false)))
-
 (defn compose [a b]
-  (if (composable? a b)
-    (loop [ops1 a, ops2 b, composed []]
-      (if (or (seq ops1) (seq ops2))
-        (let [[ops1 ops2 composed] (gen-composed-ops ops1 ops2 composed)]
-          (recur ops1 ops2 composed))
-        composed))))
-  ;(throw (Exception. "Operations are not composable"))))
+  (loop [ops1 a, ops2 b, composed []]
+    (if (or (seq ops1) (seq ops2))
+      (let [[ops1 ops2 composed] (gen-composed-ops ops1 ops2 composed)]
+        (recur ops1 ops2 composed))
+      composed)))
 
 ;; ================= EVAL =====================
 
@@ -145,3 +133,13 @@
       buffer (compose b' e)
       [_ d'] (transform buffer d'')]
   d')
+
+(def f [(->Op :ret 2) (->Op :ins "a")])
+(def g [(->Op :ret 1) (->Op :ins "r") (->Op :ret 2)])
+(def h [(->Op :ret 4) (->Op :ins "n")])
+
+(-> (compose a b)
+    (compose f)
+    (compose g)
+    (compose h))
+
