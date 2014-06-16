@@ -1,4 +1,4 @@
-(def tk-version "0.4.1")
+(def tk-version "0.4.2")
 (def ks-version "0.5.3")
 
 (defproject ot "0.1.0"
@@ -26,10 +26,9 @@
                  [org.clojure/core.async "0.1.267.0-0d7780-alpha"]
                  [jayq "2.5.0"]
                  [prismatic/dommy "0.1.2"]
-                 [om "0.5.3"]
+                 [om "0.6.4"]
                  [com.facebook/react "0.8.0.1"]]
 
-  ;:main ot.core
   :main puppetlabs.trapperkeeper.main
 
   :plugins [[lein-cljsbuild "1.0.1"]]
