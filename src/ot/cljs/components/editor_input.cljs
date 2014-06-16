@@ -6,7 +6,9 @@
             [cljs.core.async :refer [put! chan <!]])
   (:use-macros [dommy.macros :only [node sel sel1]]))
 
-(def rejected-keys ["Up" "Down" "Left" "Right"])
+(enable-console-print!)
+
+(def rejected-keys ["Up" "Down" "Left" "Right" "Backspace"])
 
 (defn caret-position
   "gets or sets the current cursor position"
@@ -20,9 +22,12 @@
   (let [caret-loc (:caret @cursor)
         retain-before (transforms/->Op :ret caret-loc)
         insert (transforms/->Op :ins key)
-        chars-remaining (- (:text-length @cursor) caret-loc)
-        retain-after (transforms/->Op :ret chars-remaining)]
-    [retain-before insert retain-after]))
+        chars-remaining (- (count (:text @cursor)) caret-loc)
+        retain-after (transforms/->Op :ret chars-remaining)
+        op-list [retain-before insert]]
+    (if (= 0 chars-remaining)
+      op-list
+      (conj op-list retain-after))))
 
 (defn handle-keypress [e cursor input]
   (when (not (util/in? rejected-keys (.-key e)))

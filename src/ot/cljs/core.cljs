@@ -2,11 +2,12 @@
   (:require [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]
             [cljs.core.async :refer [put! chan <!]]
-            [ot.cljs.components.editor :as editor])
+            [ot.cljs.components.editor :as editor]
+            [ot.lib.repl :as repl])
   (:use-macros [dommy.macros :only [node sel sel1]]))
 
 ;; Define intial state of app
-(def app-state (atom {:editor {:id nil
+(def app-state (atom {:editor {:id [0]
                                :owned-ids []
                                :input {:caret 0
                                        :text "Hello"}}}))

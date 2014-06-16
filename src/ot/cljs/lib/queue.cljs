@@ -10,29 +10,30 @@
 (def inbound (chan))
 (def buffer-has-item (chan))
 (def buffer (atom []))
+(def sent-ids (chan))
+(def recv-ids (chan))
+
+(enable-console-print!)
 
 (defn send [op]
-  (.log js/console "Sending operation to buffer for composition")
-  (.log js/console "--" (pr-str @buffer))
-  (.log js/console "++" (pr-str op))
   (if (empty? @buffer)
-    (reset! buffer op)
-    (swap! buffer transforms/compose op))
-  (.log js/console "==" (pr-str @buffer))
-  (.log js/console "............................................................")
-  (put! buffer-has-item true))
+    (do
+      (reset! buffer op)
+      (put! buffer-has-item true))
+    (swap! buffer transforms/compose op)))
 
 (defn buffer-queue
   "Blocking routine that throttles outbound operations.
   Waits for confirmation on previous operation before
   sending the new operation."
-  []
+  [id]
   (go (while true
     (let [_ (<! confirmation)
           _ (<! buffer-has-item)
-          data {:id id :parent-id parent-id :ops @buffer}
+          data {:id @id :parent-id parent-id :ops @buffer}
           serialized (pr-str data)]
-      (.log js/console "[bq <~] Sending operation to the server")
+      (println "[bq <~] Sending operation to the server")
+      (put! sent-ids @id)
       (ws/send serialized)
       (reset! buffer [])))))
 
@@ -41,25 +42,26 @@
   ID is owned by the client, it is removed from the
   owned-ids queue, and added to the queue of confirmed
   operations."
-  [owner]
+  [owned-ids]
+  (cljs.reader/register-tag-parser! 'ot.crossover.transforms.Op transforms/map->Op)
   (go (while true
         (let [response (<! ws/recv)
               data (cljs.reader/read-string (.-data response))
-              id (:id data)
-              owned-ids (om/get-state owner :owned-ids)]
-          (.log js/console "[iq ->] Received operation from server")
-          (if (util/in? owned-ids id)
+              id (:id data)]
+          (println "[iq ->] Received operation from server")
+          (if (util/in? @owned-ids id)
             (do
-              (.log js/console "  [...] Confirmed operation roundtrip success")
-              (om/set-state! owner :owned-ids (remove #{id} owned-ids))
+              (println "  [...] Confirmed operation roundtrip success")
+              (put! recv-ids id)
               (put! confirmation response))
-            (put! inbound response))))))
+            (do
+              (put! inbound (:ops data))))))))
 
 (defn init!
   "Initializes the event queues that manage the in-flow
   and out-flow of events to the editor."
-  [owner]
+  [cursor]
   (ws/init!)
   (put! confirmation true)
-  (recv-queue owner)
-  (buffer-queue))
+  (recv-queue (:owned-ids cursor))
+  (buffer-queue (:id cursor)))
