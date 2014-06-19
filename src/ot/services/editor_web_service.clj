@@ -2,14 +2,13 @@
   (:require [clojure.tools.logging :as log]
             [compojure.core :as compojure]
             [ot.core.editor-web-core :as core]
-            [puppetlabs.trapperkeeper.core :as tk]
-            [ot.routes.router :as routes]))
+            [puppetlabs.trapperkeeper.core :as tk]))
 
 (tk/defservice editor-web-service
                [[:ConfigService get-in-config]
-                [:WebsocketService set-routes]]
+                [:WebsocketService add-ring-handler]]
                (init [this context]
                      (log/info "Initializing editor webservice")
                      (let [url-prefix (get-in-config [:editor-web :url-prefix])]
-                       (set-routes routes/app-routes)
+                       (add-ring-handler core/app-routes)
                        (assoc context :url-prefix url-prefix))))

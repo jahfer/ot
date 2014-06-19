@@ -1,15 +1,12 @@
 (ns ot.core.editor-web-core
+  (:use [compojure.core :only [defroutes GET]])
   (:require [clojure.tools.logging :as log]
-            [compojure.core :as compojure]
-            [compojure.route :as route]))
+            [compojure.route :as route]
+            [ot.controllers.documents :as documents]
+            [ot.templating.views :as views]))
 
-(defn app
-  []
-  (compojure/routes
-   (compojure/GET "/:caller" [caller]
-                  (fn [req]
-                    (log/info "Handling request for caller:" caller)
-                    {:status 200
-                     :headers {"Content-Type" "text/plain"}
-                     :body (str "Hello" caller)}))
-   (route/not-found "Not found")))
+(defroutes app-routes
+  (GET "/" [] (views/home-page))
+  (GET "/ws" [] documents/async-handler)
+  (route/resources "/")
+  (route/not-found "Not found"))
