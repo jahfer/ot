@@ -1,6 +1,6 @@
-(ns ot.crossover.transforms-test
+(ns ot.transforms-test
   (:require [clojure.test :refer :all]
-            [ot.crossover.transforms :refer :all]))
+            [ot.transforms :refer :all]))
 
 (def document "go")
 

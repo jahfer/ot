@@ -1,9 +1,9 @@
-(ns ot.cljs.lib.queue
+(ns ot.lib.queue
   (:require [cljs.core.async :refer [put! chan <!]]
-            [ot.cljs.lib.sockets :as ws]
-            [ot.cljs.lib.util :as util]
+            [ot.lib.sockets :as ws]
+            [ot.lib.util :as util]
             [om.core :as om :include-macros true]
-            [ot.crossover.transforms :as transforms])
+            [ot.transforms :as transforms])
   (:require-macros [cljs.core.async.macros :refer [go]]))
 
 (def confirmation (chan))
@@ -43,7 +43,7 @@
   owned-ids queue, and added to the queue of confirmed
   operations."
   [owned-ids]
-  (cljs.reader/register-tag-parser! 'ot.crossover.transforms.Op transforms/map->Op)
+  (cljs.reader/register-tag-parser! 'ot.transforms.Op transforms/map->Op)
   (go (while true
         (let [response (<! ws/recv)
               data (cljs.reader/read-string (.-data response))

@@ -1,5 +1,5 @@
 (ns ot.templating.views
-  (:require [ot.crossover.transforms :as transforms]
+  (:require [ot.transforms :as transforms]
             [clojure.string :as str]
             [hiccup.page :as hic-p]))
 
@@ -27,4 +27,4 @@
     (hic-p/include-js "/js/vendor/md5.js")
     (hic-p/include-js "/js/vendor/jquery-1.10.2.min.js")
     (hic-p/include-js "/js/cljs.js")
-    [:script "goog.require('ot.cljs.core')"]]))
+    [:script "goog.require('ot.core')"]]))

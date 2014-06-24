@@ -1,8 +1,8 @@
-(ns ot.cljs.core
+(ns ot.core
   (:require [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]
             [cljs.core.async :refer [put! chan <!]]
-            [ot.cljs.components.editor :as editor]
+            [ot.components.editor :as editor]
             [ot.lib.repl :as repl])
   (:use-macros [dommy.macros :only [node sel sel1]]))
 

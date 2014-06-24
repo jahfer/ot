@@ -1,11 +1,11 @@
-(ns ot.cljs.components.editor
+(ns ot.components.editor
   (:require [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]
             [cljs.core.async :refer [put! chan <!]]
-            [ot.cljs.components.editor.input :as input]
-            [ot.cljs.lib.queue :as queue]
-            [ot.crossover.documents :as documents]
-            [ot.crossover.transforms :as transforms])
+            [ot.components.editor.input :as input]
+            [ot.lib.queue :as queue]
+            [ot.documents :as documents]
+            [ot.transforms :as transforms])
   (:require-macros [cljs.core.async.macros :refer [go]]))
 
 (enable-console-print!)
@@ -43,7 +43,7 @@
                         (recur))))
                 (go (loop []
                          (let [recv-id (<! queue/recv-ids)]
-                           (om/transact! cursor :owned-ids (fn [coll] (remove #{id} coll)))))))
+                           (om/transact! cursor :owned-ids (fn [coll] (remove #{recv-id} coll)))))))
     om/IRenderState
     (render-state [this {:keys [input]}]
                   (dom/div nil

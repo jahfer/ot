@@ -1,5 +1,5 @@
-(ns ot.crossover.documents
-  (:require [ot.crossover.transforms :as transforms]))
+(ns ot.documents
+  (:require [ot.transforms :as transforms]))
 
 (defn apply-ins [trans doc]
   (str (:val trans) doc))

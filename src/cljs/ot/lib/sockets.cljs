@@ -1,4 +1,4 @@
-(ns ot.cljs.lib.sockets
+(ns ot.lib.sockets
   (:require-macros [cljs.core.async.macros :refer [go]])
   (:require [cljs.core.async :refer [put! chan <!]]
             [cljs.reader :as reader]
@@ -8,7 +8,7 @@
 
 (def recv (chan))
 
-(def ws-url "ws://localhost:3000/ws")
+(def ws-url "ws://localhost:3000/editor/ws")
 (def socket (new js/WebSocket ws-url))
 
 (defn event-chan

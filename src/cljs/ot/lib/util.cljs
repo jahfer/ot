@@ -1,4 +1,4 @@
-(ns ot.cljs.lib.util
+(ns ot.lib.util
   (:require [cljs.core.async :refer [put! chan]])
   (:use [jayq.core :only [$ on]]))
 

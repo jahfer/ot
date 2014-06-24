@@ -1,8 +1,8 @@
-(ns ot.cljs.components.editor.input
+(ns ot.components.editor.input
   (:require [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]
-            [ot.cljs.lib.util :as util]
-            [ot.crossover.transforms :as transforms]
+            [ot.lib.util :as util]
+            [ot.transforms :as transforms]
             [cljs.core.async :refer [put! chan <!]])
   (:use-macros [dommy.macros :only [node sel sel1]]))
 
