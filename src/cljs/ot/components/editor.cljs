@@ -2,7 +2,7 @@
   (:require [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]
             [cljs.core.async :refer [put! chan <!]]
-            [ot.components.editor.input :as input]
+            [ot.components.editor-input :as input]
             [ot.lib.queue :as queue]
             [ot.documents :as documents]
             [ot.transforms :as transforms])

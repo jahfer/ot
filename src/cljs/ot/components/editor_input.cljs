@@ -1,4 +1,4 @@
-(ns ot.components.editor.input
+(ns ot.components.editor-input
   (:require [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]
             [ot.lib.util :as util]
