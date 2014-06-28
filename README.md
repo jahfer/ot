@@ -2,8 +2,13 @@
 `ot` is a basic implementation of Operational Transforms, used to resolve concurrent edits of a document from multiple sources.
 
 ## Usage
-1. Compile and auto-watch cljs — `lein client`
-2. Start server ([trapperkeeper](https://github.com/puppetlabs/trapperkeeper)) — `lein server`
+```
+Compile and watch cljs:
+$ lein client
+
+Start server:
+$ lein server
+```
 
 ## References
 - [Understanding and Applying Operational Transformation](http://www.codecommit.com/blog/java/understanding-and-applying-operational-transformation)
