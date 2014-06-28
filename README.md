@@ -8,6 +8,13 @@ $ lein client
 
 Start server:
 $ lein server
+
+Run tests:
+$ lein all-tests
+
+Run specific group of tests:
+$ lein do cljx, clj-test # or...
+$ lein do cljx, cljs-test
 ```
 
 ## References
