@@ -15,6 +15,7 @@
   :plugins [[com.keminglabs/cljx "0.4.0"]]
 
   :ring {:handler ot.handler/app}
+
   :profiles {:clj {:dependencies [[javax.servlet/servlet-api "2.5"]
                                   [ring-mock "0.1.5"]
                                   [puppetlabs/trapperkeeper ~tk-version :classifier "test" :scope "test"]
@@ -41,18 +42,27 @@
                                    [prismatic/dommy "0.1.2"]
                                    [om "0.6.4"]
                                    [com.facebook/react "0.8.0.1"]]
-                    :plugins [[lein-cljsbuild "1.0.3"]]
-                    :cljsbuild {:builds {:dev { :source-paths ["src/cljs" "target/generated/src/cljs"]
-                                                :compiler {:output-to "resources/public/js/cljs.js"
+                    :plugins [[lein-cljsbuild "1.0.3"]
+                              [com.cemerick/clojurescript.test "0.3.1"]]
+                    :cljsbuild {:builds {:dev { :source-paths ["src/cljs" "test/cljs" "target/generated/src/cljs" "target/generated/test/cljs"]
+                                                :compiler {:output-to "resources/public/js/main.js"
                                                            :output-dir "resources/public/out"
-                                                           :optimizations :none
-                                                           :source-map true}}}}}}
+                                                           :optimizations :whitespace
+                                                           :pretty-print true}}}
+                                :test-commands {"unit-tests" ["slimerjs" :runner
+                                                              "resources/public/js/vendor/react-0.8.0.js" "resources/public/js/vendor/jquery-1.10.2.min.js"
+                                                              "resources/public/js/main.js"]}}}}
 
-  :aliases {"tk" ["do" "cljx," "with-profile" "clj" "trampoline" "run" "--bootstrap-config" "resources/bootstrap.cfg" "--config" "resources/config.conf"]
-            "cljsc" ["with-profile" "cljs" "trampoline" "cljsbuild" "repl-listen"]
-            "cljsb" ["do" "cljx," "with-profile" "cljs" "cljsbuild" "auto" "dev"]}
+  :aliases {"server" ["do" "cljx," "with-profile" "clj" "trampoline" "run" "--bootstrap-config" "resources/bootstrap.cfg" "--config" "resources/config.conf"]
+            "client" ["do" "cljx," "with-profile" "cljs" "cljsbuild" "auto" "dev"]
+            "cljs-repl" ["with-profile" "cljs" "trampoline" "cljsbuild" "repl-listen"]
+            "clj-test" ["with-profile" "clj" "test"]
+            "cljs-test" ["with-profile" "cljs" "cljsbuild" "test"]
+            "clj-clean-test" ["do" "clean," "clj-test"]
+            "cljs-clean-test" ["do" "clean," "cljs-test"]
+            "all-tests" ["do" "clean," "cljx" "once," "clj-test," "cljs-test"]}
 
-  :hooks [cljx.hooks]
+  ;:hooks [cljx.hooks]
 
   :repl-options {:init-ns user}
 

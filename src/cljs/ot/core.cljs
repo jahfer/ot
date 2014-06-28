@@ -22,6 +22,10 @@
                                  (dom/h1 #js {:className "page-title"} "Editor"))
                      (om/build editor/editor (:editor app))))))
 
-;; Let's kick things off
-(om/root ot-app app-state
-         {:target (sel1 :#app)})
+(defn setup! []
+  (main (sel1 :#app) app-state))
+
+(defn main [target state]
+  (om/root ot-app state {:target target}))
+
+(set! (.-onload js/window) setup!)
