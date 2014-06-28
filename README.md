@@ -1,4 +1,4 @@
-# ot
+# ot [![Build Status](https://travis-ci.org/jahfer/ot.svg?branch=master)](https://travis-ci.org/jahfer/ot)
 `ot` is a basic implementation of Operational Transforms, used to resolve concurrent edits of a document from multiple sources.
 
 ## Usage
