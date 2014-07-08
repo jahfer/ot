@@ -30,6 +30,7 @@
                                   [ring/ring-core "1.1.8"]
                                   [compojure "1.1.6"]
                                   [http-kit "2.1.16"]
+                                  [org.clojure/tools.nrepl "0.2.3"]
                                   [puppetlabs/trapperkeeper ~tk-version]
                                   [org.clojure/tools.logging "0.2.6"]
                                   [org.clojure/tools.namespace "0.2.4"]]
@@ -50,7 +51,8 @@
                                                            :optimizations :whitespace
                                                            :pretty-print true}}}
                                 :test-commands {"unit-tests" ["slimerjs" :runner
-                                                              "resources/public/js/vendor/react-0.8.0.js" "resources/public/js/vendor/jquery-1.10.2.min.js"
+                                                              "resources/public/js/vendor/react-0.8.0.js"
+                                                              "resources/public/js/vendor/jquery-1.10.2.min.js"
                                                               "resources/public/js/main.js"]}}}}
 
   :aliases {"server" ["do" "cljx," "with-profile" "clj" "trampoline" "run" "--bootstrap-config" "resources/bootstrap.cfg" "--config" "resources/config.conf"]
