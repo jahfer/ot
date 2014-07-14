@@ -64,7 +64,7 @@
             "cljs-clean-test" ["do" "clean," "cljs-test"]
             "all-tests" ["do" "clean," "cljx" "once," "clj-test," "cljs-test"]}
 
-  ;:hooks [cljx.hooks]
+  :hooks [cljx.hooks]
 
   :repl-options {:init-ns user}
 
