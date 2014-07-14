@@ -4,13 +4,16 @@
             [cljs.core.async :refer [put! chan <!]]
             [ot.components.editor :as editor]
             [ot.lib.repl :as repl])
-  (:use-macros [dommy.macros :only [node sel sel1]]))
+  (:use-macros [dommy.macros :only [node sel sel1]]
+               [jayq.macros :only [ready let-ajax]]))
+
+(enable-console-print!)
 
 ;; Define intial state of app
 (def app-state (atom {:editor {:id [0]
                                :owned-ids []
                                :input {:caret 0
-                                       :text "Hello"}}}))
+                                       :text nil}}}))
 
 ;; Entrance point
 (defn ot-app [app owner]
@@ -23,9 +26,11 @@
                      (om/build editor/editor (:editor app))))))
 
 (defn setup! []
-  (main (sel1 :#app) app-state))
+  (let-ajax [remote-doc {:url "/editor/documents/1"}]
+            (swap! app-state assoc-in [:editor :input :text] (:doc remote-doc))
+            (main (sel1 :#app) app-state)))
 
 (defn main [target state]
   (om/root ot-app state {:target target}))
 
-(set! (.-onload js/window) setup!)
+(ready [] (setup!))

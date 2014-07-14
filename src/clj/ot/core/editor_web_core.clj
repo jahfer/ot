@@ -6,12 +6,19 @@
             [compojure.route :as route]
             [ot.templating.views :as views]
             [ot.transforms :refer :all]
+            [ot.documents :as documents]
             [clojure.core.async :refer [go put! <! chan]]))
 
 (declare async-handler)
 
+(def root-document (atom "Hullo"))
+
 (defroutes editor-routes
   (GET "/" [] (views/home-page))
+  (GET "/documents/:id" [] (fn [{params :params}]
+                             {:status 200
+                              :headers {"Content-Type" "application/edn"}
+                              :body (pr-str {:id (:id params) :doc @root-document})}))
   (GET "/ws" [] async-handler))
 
 (defroutes app-routes
@@ -20,6 +27,7 @@
 
 (def input (chan))
 (def clients (atom {}))
+
 (declare broadcast)
 
 (defn async-handler [req]
@@ -41,6 +49,9 @@
                          data)]
         (println "Received from client:")
         (clojure.pprint/pprint parsed-data)
+        (println (take 30 (repeat "-")))
+        (swap! root-document documents/apply-ops (:ops parsed-data))
+        (println @root-document)
         (println (take 30 (repeat "-")))
         (broadcast data)))))
 
