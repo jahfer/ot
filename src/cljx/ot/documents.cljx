@@ -1,14 +1,12 @@
 (ns ot.documents
-  (:require [ot.transforms :as transforms]))
+  (:require [ot.transforms :as transforms]
+            [clojure.string :as str]))
 
 (defn apply-ins [trans doc]
   (str (:val trans) doc))
 
 (defn apply-ret [trans doc]
-  (let [n (:val trans)
-        head (take n doc)
-        tail (drop n doc)]
-    [(apply str head) (apply str tail)]))
+  (map str/join (split-at (:val trans) doc)))
 
 (defn apply-ops [doc ops]
   (let [operation (first ops)]

@@ -3,6 +3,7 @@
             [dommy.core :as dommy]
             [om.core :as om :include-macros true]
             [ot.lib.test-util :as util]
+            [ot.transforms :as transforms]
             [ot.components.editor-input :as editor-input])
   (:require-macros [cemerick.cljs.test
                     :refer (is deftest with-test run-tests testing test-var)])
@@ -13,6 +14,18 @@
     (testing "Correct editor contents"
       (is (= "Foobar"
              (let [c (util/new-container!)]
-               (print "Testing with container: " c)
                (om/root editor-input/editor-input data {:target c})
                (dommy/text (sel1 c :textarea#editor))))))))
+
+(deftest editor-reacts?
+  (let [data {:caret 6 :text "Foobar"}]
+    (testing "gen-insert-op returns a correct description of the user input"
+      (is (= [(transforms/->Op :ret 6) (transforms/->Op :ins "!")]
+             (editor-input/gen-insert-op "!" (atom data)))))
+    (testing "handle-keypress correctly applies character and updates cursor"
+      (let [evt (js-obj)
+            keypress (set! (.-key (js-obj)) "!")
+            input (chan)]
+        (aset evt "key" "!")
+        (aset evt "which" 33)
+        (is (= nil (editor-input/handle-keypress evt (atom data) input)))))))
