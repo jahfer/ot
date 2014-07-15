@@ -21,11 +21,4 @@
   (let [data {:caret 6 :text "Foobar"}]
     (testing "gen-insert-op returns a correct description of the user input"
       (is (= [(transforms/->Op :ret 6) (transforms/->Op :ins "!")]
-             (editor-input/gen-insert-op "!" (atom data)))))
-    (testing "handle-keypress correctly applies character and updates cursor"
-      (let [evt (js-obj)
-            keypress (set! (.-key (js-obj)) "!")
-            input (chan)]
-        (aset evt "key" "!")
-        (aset evt "which" 33)
-        (is (= nil (editor-input/handle-keypress evt (atom data) input)))))))
+             (editor-input/gen-insert-op "!" (atom data)))))))
