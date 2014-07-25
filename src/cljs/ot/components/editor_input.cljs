@@ -20,14 +20,12 @@
 
 (defn gen-insert-op [key cursor]
   (let [caret-loc (:caret @cursor)
-        retain-before (transforms/->Op :ret caret-loc)
-        insert (transforms/->Op :ins key)
-        chars-remaining (- (count (:text @cursor)) caret-loc)
-        retain-after (transforms/->Op :ret chars-remaining)
-        op-list [retain-before insert]]
-    (if (= 0 chars-remaining)
+        op-list (transforms/oplist :ret caret-loc :ins key)
+        chars-remaining (- (count (:text @cursor)) caret-loc)]
+    (if (zero? chars-remaining)
       op-list
-      (conj op-list retain-after))))
+      (let [retain-after (transforms/->Op :ret chars-remaining)]
+        (conj op-list retain-after)))))
 
 (defn handle-keypress [e cursor input]
   (when (not (util/in? rejected-keys (.-key e)))

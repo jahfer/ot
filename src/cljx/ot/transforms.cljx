@@ -2,6 +2,9 @@
 
 (defrecord Op [type val])
 
+(defn oplist [& operations]
+  (vec (map #(apply ->Op %) (partition 2 operations))))
+
 (defn insert [operation]
   [operation, (->Op :ret 1)])
 

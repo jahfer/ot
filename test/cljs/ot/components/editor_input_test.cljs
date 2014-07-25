@@ -20,5 +20,5 @@
 (deftest editor-reacts?
   (let [data {:caret 6 :text "Foobar"}]
     (testing "gen-insert-op returns a correct description of the user input"
-      (is (= [(transforms/->Op :ret 6) (transforms/->Op :ins "!")]
+      (is (= (transforms/oplist :ret 6 :ins "!")
              (editor-input/gen-insert-op "!" (atom data)))))))
