@@ -39,19 +39,22 @@
                    :test-paths ["target/generated/test/clj" "test/clj"]
                    :resource-paths ["resources" "target/generated/src/cljs"]}
 
-             :cljs {:dependencies [[org.clojure/clojurescript "0.0-2197"]
-                                   [jayq "2.5.1"]
-                                   [prismatic/dommy "0.1.2"]
-                                   [com.cognitect/transit-cljs "0.8.161"]
+             :cljs {:dependencies [[org.clojure/clojurescript "0.0-2311"]
+                                   [jayq "2.5.2"]
+                                   [prismatic/dommy "0.1.3"]
                                    [om "0.6.4"]
-                                   [com.facebook/react "0.8.0.1"]]
-                    :plugins [[lein-cljsbuild "1.0.3"]
+                                   [com.facebook/react "0.8.0.1"]
+                                   [com.cognitect/transit-cljs "0.8.178"]]
+                    :plugins [[lein-cljsbuild "1.0.4-SNAPSHOT"]
                               [com.cemerick/clojurescript.test "0.3.1"]]
-                    :cljsbuild {:builds {:dev { :source-paths ["src/cljs" "test/cljs" "target/generated/src/cljs" "target/generated/test/cljs"]
-                                                :compiler {:output-to "resources/public/js/main.js"
-                                                           :output-dir "resources/public/out"
-                                                           :optimizations :whitespace
-                                                           :pretty-print true}}}
+                    :cljsbuild {:builds {:dev {:source-paths ["src/cljs" 
+                                                              "test/cljs" 
+                                                              "target/generated/src/cljs"
+                                                              "target/generated/test/cljs"]
+                                               :compiler {:output-to "resources/public/js/main.js"
+                                                          :output-dir "resources/public/out"
+                                                          :optimizations :none
+                                                          :pretty-print true}}}
                                 :test-commands {"unit-tests" ["slimerjs" :runner
                                                               "resources/public/js/vendor/react-0.8.0.js"
                                                               "resources/public/js/vendor/jquery-1.10.2.min.js"

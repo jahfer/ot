@@ -1,10 +1,10 @@
 (ns ot.lib.queue
   (:require [cljs.core.async :refer [put! chan <!]]
-            [cognitect.transit :as transit]
             [ot.lib.sockets :as ws]
             [ot.lib.util :as util]
             [om.core :as om :include-macros true]
-            [ot.transforms :as transforms])
+            [ot.transforms :as transforms]
+            [cognitect.transit :as transit])
   (:require-macros [cljs.core.async.macros :refer [go]]))
 
 (def confirmation (chan))
@@ -31,10 +31,11 @@
   (go (while true
     (let [_ (<! confirmation)
           _ (<! buffer-has-item)
-          ;writer (transit/writer :json)
+          writer (transit/writer :json)
           data {:id @id :parent-id parent-id :ops @buffer}
-          ;serialized (transit/write writer data)
-          serialized (pr-str data)]
+          serialized (transit/write writer data)
+          ;serialized (pr-str data)
+          ]
       (println "[bq <~] Sending operation to the server" serialized)
       (put! sent-ids @id)
       (ws/send serialized)
