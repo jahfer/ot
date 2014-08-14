@@ -42,22 +42,25 @@
                    (swap! clients dissoc ch)
                    (log/info "closed channel:" status)))))
 
+(def op-read-handler
+  (transit/read-handler (fn [[type val]] (->Op type val))))
+
 (defn handle-connections []
   (go
     (while true
       (let [data (<! input)
-            byte-list (byte-array (map bytes data))
-            in (ByteArrayInputStream. byte-list)
-            reader (transit/reader in :json)
-            parsed-data (transit/read reader)
-            ;parsed-data (edn/read-string {:readers {'ot.transforms.Op ot.transforms/map->Op}} data)
-            ]
+            in (ByteArrayInputStream. (.getBytes data))
+            reader (transit/reader in :json {:handlers {"op" op-read-handler}})
+            parsed-data (transit/read reader)]
+
         (println "Received from client:")
         (clojure.pprint/pprint parsed-data)
+
         (println (take 30 (repeat "-")))
         (swap! root-document documents/apply-ops (:ops parsed-data))
         (println @root-document)
         (println (take 30 (repeat "-")))
+
         (broadcast data)))))
 
 (defn shutdown []
