@@ -9,6 +9,7 @@
             [ot.templating.views :as views]
             [ot.transforms :refer :all]
             [ot.documents :as documents]
+            [ot.transit-handlers :as transit-handlers]
             [clojure.core.async :refer [go put! <! chan]]))
 
 (declare async-handler)
@@ -42,17 +43,13 @@
                    (swap! clients dissoc ch)
                    (log/info "closed channel:" status)))))
 
-(def op-read-handler
-  (transit/read-handler (fn [[type val]] (->Op type val))))
-
 (defn handle-connections []
   (go
     (while true
       (let [data (<! input)
             in (ByteArrayInputStream. (.getBytes data))
-            reader (transit/reader in :json {:handlers {"op" op-read-handler}})
+            reader (transit/reader in :json {:handlers transit-handlers/read-handlers})
             parsed-data (transit/read reader)]
-
         (println "Received from client:")
         (clojure.pprint/pprint parsed-data)
 
