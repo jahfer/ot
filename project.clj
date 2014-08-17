@@ -45,15 +45,15 @@
                                    [om "0.6.4"]
                                    [com.facebook/react "0.8.0.1"]
                                    [com.cognitect/transit-cljs "0.8.182"]]
-                    :plugins [[lein-cljsbuild "1.0.4-SNAPSHOT"]
+                    :plugins [[lein-cljsbuild "1.0.3"]
                               [com.cemerick/clojurescript.test "0.3.1"]]
-                    :cljsbuild {:builds {:dev {:source-paths ["src/cljs" 
-                                                              "test/cljs" 
+                    :cljsbuild {:builds {:dev {:source-paths ["src/cljs"
+                                                              "test/cljs"
                                                               "target/generated/src/cljs"
                                                               "target/generated/test/cljs"]
                                                :compiler {:output-to "resources/public/js/main.js"
                                                           :output-dir "resources/public/out"
-                                                          :optimizations :none
+                                                          :optimizations :whitespace
                                                           :pretty-print true}}}
                                 :test-commands {"unit-tests" ["slimerjs" :runner
                                                               "resources/public/js/vendor/react-0.8.0.js"
