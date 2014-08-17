@@ -25,12 +25,12 @@
                                  (dom/h1 #js {:className "page-title"} "Editor"))
                      (om/build editor/editor (:editor app))))))
 
+(defn main [target state]
+  (om/root ot-app state {:target target}))
+
 (defn setup! []
   (let-ajax [remote-doc {:url "/editor/documents/1"}]
             (swap! app-state assoc-in [:editor :input :text] (:doc remote-doc))
             (main (sel1 :#app) app-state)))
-
-(defn main [target state]
-  (om/root ot-app state {:target target}))
 
 (ready [] (setup!))

@@ -1,12 +1,15 @@
 (ns ot.core.editor-web-core
   (:use [compojure.core :only [defroutes GET]]
         org.httpkit.server)
+  (:import [java.io ByteArrayInputStream])
   (:require [clojure.tools.logging :as log]
             [clojure.edn :as edn]
             [compojure.route :as route]
+            [cognitect.transit :as transit]
             [ot.templating.views :as views]
             [ot.transforms :refer :all]
             [ot.documents :as documents]
+            [ot.transit-handlers :as transit-handlers]
             [clojure.core.async :refer [go put! <! chan]]))
 
 (declare async-handler)
@@ -44,15 +47,17 @@
   (go
     (while true
       (let [data (<! input)
-            parsed-data (edn/read-string
-                         {:readers {'ot.transforms.Op ot.transforms/map->Op}}
-                         data)]
+            in (ByteArrayInputStream. (.getBytes data))
+            reader (transit/reader in :json {:handlers transit-handlers/read-handlers})
+            parsed-data (transit/read reader)]
         (println "Received from client:")
         (clojure.pprint/pprint parsed-data)
+
         (println (take 30 (repeat "-")))
         (swap! root-document documents/apply-ops (:ops parsed-data))
         (println @root-document)
         (println (take 30 (repeat "-")))
+
         (broadcast data)))))
 
 (defn shutdown []

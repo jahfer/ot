@@ -2,8 +2,10 @@
   (:require [cljs.core.async :refer [put! chan <!]]
             [ot.lib.sockets :as ws]
             [ot.lib.util :as util]
+            [ot.transit-handlers :as transit-handlers]
             [om.core :as om :include-macros true]
-            [ot.transforms :as transforms])
+            [ot.transforms :as transforms]
+            [cognitect.transit :as transit])
   (:require-macros [cljs.core.async.macros :refer [go]]))
 
 (def confirmation (chan))
@@ -31,7 +33,8 @@
     (let [_ (<! confirmation)
           _ (<! buffer-has-item)
           data {:id @id :parent-id parent-id :ops @buffer}
-          serialized (pr-str data)]
+          writer (transit/writer :json {:handlers transit-handlers/write-handlers})
+          serialized (transit/write writer data)]
       (println "[bq <~] Sending operation to the server")
       (put! sent-ids @id)
       (ws/send serialized)
@@ -43,10 +46,10 @@
   owned-ids queue, and added to the queue of confirmed
   operations."
   [owned-ids]
-  (cljs.reader/register-tag-parser! 'ot.transforms.Op transforms/map->Op)
   (go (while true
         (let [response (<! ws/recv)
-              data (cljs.reader/read-string (.-data response))
+              reader (transit/reader :json {:handlers transit-handlers/read-handlers})
+              data (transit/read reader response)
               id (:id data)]
           (println "[iq ->] Received operation from server")
           (if (util/in? @owned-ids id)

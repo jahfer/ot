@@ -7,7 +7,6 @@
   (:use-macros [dommy.macros :only [node sel sel1]]))
 
 (def recv (chan))
-
 (def ws-url "ws://localhost:3000/editor/ws")
 (def socket (new js/WebSocket ws-url))
 
@@ -21,7 +20,9 @@
       :unsubscribe #(dommy/unlisten! el type writer)})))
 
 (defn make-receiver []
-  (set! (.-onmessage socket) (fn [msg] (put! recv msg))))
+  (set! (.-onmessage socket) (fn [msg]
+                               (when-let [data (.-data msg)]
+                                 (put! recv data)))))
 
 (defn send [data]
   (.send socket data))
