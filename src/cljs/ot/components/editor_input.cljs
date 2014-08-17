@@ -27,12 +27,12 @@
       (let [retain-after (transforms/->Op :ret chars-remaining)]
         (conj op-list retain-after)))))
 
-(defn handle-keypress [e cursor input]
+(defn handle-keypress [e cursor comm]
   (when (not (util/in? rejected-keys (.-key e)))
     (om/transact! cursor :caret #(caret-position))
     (let [key (util/keyFromCode (.-which e))
           operations (gen-insert-op key cursor)]
-      (put! input operations)
+      (put! comm operations)
       (om/transact! cursor :caret inc))))
 
 (defn editor-input [cursor owner opts]
@@ -43,7 +43,7 @@
     (did-update [this prev-props prev-state]
                 (caret-position (:caret cursor)))
     om/IRenderState
-    (render-state [this {:keys [input]}]
+    (render-state [this {:keys [comm]}]
                   (dom/textarea #js {:id "editor"
                                      :value (:text cursor)
-                                     :onKeyPress #(handle-keypress % cursor input)}))))
+                                     :onKeyPress #(handle-keypress % cursor comm)}))))

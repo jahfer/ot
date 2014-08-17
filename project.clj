@@ -44,7 +44,8 @@
                                    [prismatic/dommy "0.1.3"]
                                    [om "0.6.4"]
                                    [com.facebook/react "0.8.0.1"]
-                                   [com.cognitect/transit-cljs "0.8.182"]]
+                                   [com.cognitect/transit-cljs "0.8.182"]
+                                   [cljs-hash "0.0.2"]]
                     :plugins [[lein-cljsbuild "1.0.3"]
                               [com.cemerick/clojurescript.test "0.3.1"]]
                     :cljsbuild {:builds {:dev {:source-paths ["src/cljs"
