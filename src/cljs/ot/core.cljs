@@ -11,6 +11,7 @@
 
 ;; Define intial state of app
 (def app-state (atom {:editor {:id [0]
+                               :parent-id []
                                :owned-ids []
                                :input {:caret 0
                                        :text nil}}}))

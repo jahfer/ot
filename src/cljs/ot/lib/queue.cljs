@@ -28,11 +28,11 @@
   "Blocking routine that throttles outbound operations.
   Waits for confirmation on previous operation before
   sending the new operation."
-  [id]
+  [[id parent-id]]
   (go (while true
     (let [_ (<! confirmation)
           _ (<! buffer-has-item)
-          data {:id @id :parent-id parent-id :ops @buffer}
+          data {:id @id :parent-id @parent-id :ops @buffer}
           writer (transit/writer :json {:handlers transit-handlers/write-handlers})
           serialized (transit/write writer data)]
       (println "[bq <~] Sending operation to the server")
@@ -67,4 +67,4 @@
   (ws/init!)
   (put! confirmation true)
   (recv-queue (:owned-ids cursor))
-  (buffer-queue (:id cursor)))
+  (buffer-queue [(:id cursor) (:parent-id cursor)]))
