@@ -14,6 +14,7 @@
 (def buffer (atom []))
 (def sent-ids (chan))
 (def recv-ids (chan))
+(def last-client-op (atom []))
 
 (enable-console-print!)
 
@@ -24,6 +25,12 @@
       (put! buffer-has-item true))
     (swap! buffer transforms/compose op)))
 
+(defn flush-buffer! []
+  (let [buf-contents @buffer]
+    (reset! last-client-op @buffer)
+    (reset! buffer [])
+    buf-contents))
+
 (defn buffer-queue
   "Blocking routine that throttles outbound operations.
   Waits for confirmation on previous operation before
@@ -32,13 +39,14 @@
   (go (while true
     (let [_ (<! confirmation)
           _ (<! buffer-has-item)
-          data {:id @id :parent-id @parent-id :ops @buffer}
-          writer (transit/writer :json {:handlers transit-handlers/write-handlers})
-          serialized (transit/write writer data)]
-      (println "[bq <~] Sending operation to the server")
-      (put! sent-ids @id)
-      (ws/send serialized)
-      (reset! buffer [])))))
+          buf (flush-buffer!)]
+      (if (seq buf)
+        (let [data {:id @id :parent-id @parent-id :ops buf}
+              writer (transit/writer :json {:handlers transit-handlers/write-handlers})
+              serialized (transit/write writer data)]
+          (println "[bq <~] Sending operation to the server")
+          (put! sent-ids @id)
+          (ws/send serialized)))))))
 
 (defn recv-queue
   "Routine to receive operations from server. When the
@@ -56,9 +64,9 @@
             (do
               (println "  [...] Confirmed operation roundtrip success")
               (put! recv-ids id)
-              (put! confirmation response))
-            (do
-              (put! inbound (:ops data))))))))
+              (put! confirmation response)
+              (reset! last-client-op []))
+            (put! inbound (:ops data)))))))
 
 (defn init!
   "Initializes the event queues that manage the in-flow

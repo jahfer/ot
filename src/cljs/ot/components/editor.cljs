@@ -32,8 +32,17 @@
               internal-queue (om/get-state owner :comm)]
           (alt!
            external-queue ([operations]
-                             (update-contents! operations cursor)
-                             (swap! queue/buffer transforms/transform operations))
+                             (let [last-op (deref queue/last-client-op)
+                                   buf (deref queue/buffer)]
+                               (if (seq last-op)
+                                 (let [[a'' c''] (transforms/transform last-op operations)]
+                                   (if (seq buf)
+                                     (let [[buf' ops'] (transforms/transform buf c'')]
+                                       (reset! queue/buffer buf')
+                                       (update-contents! ops' cursor))
+                                     (update-contents! c'' cursor))
+                                   (reset! queue/last-client-op a''))
+                                 (update-contents! operations cursor))))
            internal-queue ([operations]
                              (update-contents! operations cursor)
                              (queue/send operations))
