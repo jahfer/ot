@@ -8,8 +8,9 @@
 
 (def document "go")
 
-(def op-tom (transforms/oplist :ret 2 :ins "a"))
+(def op-tom   (transforms/oplist :ret 2 :ins "a"))
 (def op-jerry (transforms/oplist :ret 2 :ins "t"))
+(def op-barry (transforms/oplist :ret 1 :del 1))
 
 (def tom-document
   (str document "a"))
@@ -47,6 +48,26 @@
       (is (= a' expect-ops1'))
       (is (= b' expect-ops2')))))
 
+(deftest delete-test
+  (testing "Transforming a delete operation with an insert operation results in the correct pair of operations"
+    (let [[a' b'] (transforms/transform op-tom op-barry)
+          expect-ops1' (transforms/oplist :ret 1 :ins "a")
+          expect-ops2' (transforms/oplist :ret 1 :del 1 :ret 1)]
+      (is (= a' expect-ops1'))
+      (is (= b' expect-ops2'))))
+  (testing "Transforming an insert operation with a delete operation results in the correct pair of operations"
+    (let [[c' d'] (transforms/transform op-barry op-tom)
+          expect-ops3' (transforms/oplist :ret 1 :del 1 :ret 1)
+          expect-ops4' (transforms/oplist :ret 1 :ins "a")]
+      (is (= c' expect-ops3'))
+      (is (= d' expect-ops4'))))
+  (testing "Tranforming two delete operations results in the correct pair of operations"
+    (let [[e' f'] (transforms/transform op-barry op-barry)
+          expect-ops5' (transforms/oplist :ret 1)
+          expect-ops6' (transforms/oplist :ret 1)]
+      (is (= e' expect-ops5'))
+      (is (= f' expect-ops6')))))
+
 (deftest compress-test
   (testing "#compress will join all neighboring like items"
     (let [ops1 (transforms/oplist :ret 2 :ret 1 :ins "a" :ret 1 :ret 3)
@@ -59,4 +80,7 @@
 (deftest compose-test
   (testing "Composing two lists of operations results in a single list of all combined operations"
     (let [comp (transforms/compose (transforms/oplist :ret 1 :ins "o") (transforms/oplist :ret 2 :ins "t"))]
-      (is (= comp (transforms/oplist :ret 1 :ins "o" :ins "t"))))))
+      (is (= comp (transforms/oplist :ret 1 :ins "o" :ins "t")))))
+  (testing "Composing a delete with an insert returns the expected result"
+    (let [comp (transforms/compose (transforms/oplist :ret 1 :ins "o") (transforms/oplist :ret 2 :del 1))]
+      (is (= comp (transforms/oplist :ret 1 :ins "o" :del 1))))))
