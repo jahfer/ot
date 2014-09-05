@@ -1,9 +1,9 @@
 (ns ot.transit-handlers
   (:require [cognitect.transit :as t]
-            [ot.transforms :as transforms]))
+            [ot.operations :as operations]))
 
 (def op-read-handler
-  (t/read-handler #(apply transforms/->Op %)))
+  (t/read-handler #(apply operations/->Op %)))
 
 (def op-write-handler
   (t/write-handler
@@ -11,4 +11,4 @@
    (fn [op] [(:type op) (:val op)])))
 
 (def read-handlers {"op" op-read-handler})
-(def write-handlers {ot.transforms.Op op-write-handler})
+(def write-handlers {ot.operations.Op op-write-handler})

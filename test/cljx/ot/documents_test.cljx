@@ -2,7 +2,7 @@
   (:require #+clj [clojure.test :as t
                    :refer (is deftest with-test run-tests testing)]
             #+cljs [cemerick.cljs.test :as t]
-            [ot.transforms :as transforms]
+            [ot.operations :as operations]
             [ot.documents :as documents])
   #+cljs (:require-macros [cemerick.cljs.test
                            :refer (is deftest with-test run-tests testing test-var)]))
@@ -10,20 +10,20 @@
 (def document "ram")
 
 (def op-tom
-  [(transforms/->Op :ret 1)
-   (transforms/->Op :ins "o")
-   (transforms/->Op :ret 2)
-   (transforms/->Op :ins "!")])
+  [(operations/->Op :ret 1)
+   (operations/->Op :ins "o")
+   (operations/->Op :ret 2)
+   (operations/->Op :ins "!")])
 
 (deftest apply-ins-test
   (testing "Applying an insert operation prepends the character to the document"
-    (let [ins-op (transforms/->Op :ins "g")
+    (let [ins-op (operations/->Op :ins "g")
           out (documents/apply-ins ins-op document)]
       (is (= out "gram")))))
 
 (deftest apply-ret-test
   (testing "Applying a retain operation splits the document at the retain count"
-    (let [ret-op (transforms/->Op :ret 2)
+    (let [ret-op (operations/->Op :ret 2)
           [head tail] (documents/apply-ret ret-op "hello")]
       (is (= head "he"))
       (is (= tail "llo")))))

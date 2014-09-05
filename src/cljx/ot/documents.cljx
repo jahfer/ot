@@ -1,5 +1,6 @@
 (ns ot.documents
-  (:require [ot.transforms :as transforms]
+  (:require [ot.operations :as operations]
+            [ot.transforms :as transforms]
             [clojure.string :as str]))
 
 (defn apply-ins [trans doc]
@@ -11,11 +12,11 @@
 (defn apply-ops [doc ops]
   (let [operation (first ops)]
     (cond
-     (transforms/insert? operation)
+     (operations/insert? operation)
        (recur (apply-ins operation doc)
               (-> (rest ops)
-                  (conj (transforms/->Op :ret 1))))
-     (transforms/retain? operation)
+                  (conj (operations/->Op :ret 1))))
+     (operations/retain? operation)
        (let [[head tail] (apply-ret operation doc)]
          (str head (apply-ops tail (rest ops))))
      :else doc)))

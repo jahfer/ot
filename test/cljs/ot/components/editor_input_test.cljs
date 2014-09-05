@@ -3,6 +3,7 @@
             [dommy.core :as dommy]
             [om.core :as om :include-macros true]
             [ot.lib.test-util :as util]
+            [ot.operations :as operations]
             [ot.transforms :as transforms]
             [ot.components.editor-input :as editor-input])
   (:require-macros [cemerick.cljs.test
@@ -20,5 +21,5 @@
 (deftest editor-reacts?
   (let [data {:caret 6 :text "Foobar"}]
     (testing "gen-insert-op returns a correct description of the user input"
-      (is (= (transforms/oplist :ret 6 :ins "!")
+      (is (= (operations/oplist :ret 6 :ins "!")
              (editor-input/gen-insert-op "!" (atom data)))))))

@@ -2,7 +2,7 @@
   (:require [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]
             [ot.lib.util :as util]
-            [ot.transforms :as transforms]
+            [ot.operations :as operations]
             [cljs.core.async :refer [put! chan <!]])
   (:use-macros [dommy.macros :only [node sel sel1]]))
 
@@ -20,11 +20,11 @@
 
 (defn gen-insert-op [key cursor]
   (let [caret-loc (:caret @cursor)
-        op-list (transforms/oplist :ret caret-loc :ins key)
+        op-list (operations/oplist :ret caret-loc :ins key)
         chars-remaining (- (count (:text @cursor)) caret-loc)]
     (if (zero? chars-remaining)
       op-list
-      (let [retain-after (transforms/->Op :ret chars-remaining)]
+      (let [retain-after (operations/->Op :ret chars-remaining)]
         (conj op-list retain-after)))))
 
 (defn handle-keypress [e cursor comm]

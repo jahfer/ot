@@ -4,7 +4,7 @@
             [ot.lib.util :as util]
             [ot.transit-handlers :as transit-handlers]
             [om.core :as om :include-macros true]
-            [ot.transforms :as transforms]
+            [ot.composers :as composers]
             [cognitect.transit :as transit])
   (:require-macros [cljs.core.async.macros :refer [go]]))
 
@@ -23,7 +23,7 @@
     (do
       (reset! buffer op)
       (put! buffer-has-item true))
-    (swap! buffer transforms/compose op)))
+    (swap! buffer composers/compose op)))
 
 (defn flush-buffer! []
   (let [buf-contents @buffer]
