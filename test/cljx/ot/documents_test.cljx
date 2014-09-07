@@ -15,6 +15,9 @@
    (operations/->Op :ret 2)
    (operations/->Op :ins "!")])
 
+(def op-jerry
+  (operations/oplist :del 1 :ins "R" :ret 2))
+
 (deftest apply-ins-test
   (testing "Applying an insert operation prepends the character to the document"
     (let [ins-op (operations/->Op :ins "g")
@@ -31,4 +34,7 @@
 (deftest apply-ops-test
   (testing "Applying a series of operations results in the correct end document"
     (let [result (documents/apply-ops document op-tom)]
-      (is (= result "roam!")))))
+      (is (= result "roam!"))))
+  (testing "Applying a delete operation results in the correct end document"
+    (let [result (documents/apply-ops document op-jerry)]
+      (is (= result "Ram")))))

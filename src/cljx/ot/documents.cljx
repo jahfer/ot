@@ -3,12 +3,15 @@
             [ot.transforms :as transforms]
             [clojure.string :as str]))
 
-(defn apply-ins [trans doc]
-  (str (:val trans) doc))
+(defn apply-ins [{c :val} doc]
+  (str c doc))
 
-(defn apply-ret [trans doc]
-  (let [[head tail] (map str/join (split-at (:val trans) doc))]
+(defn apply-ret [{n :val} doc]
+  (let [[head tail] (map str/join (split-at n doc))]
     {:head head :tail tail}))
+
+(defn apply-del [{n :val} doc]
+  (str/join (drop n doc)))
 
 (defn exec-ops [doc ops]
   (let [op (first ops)]
@@ -16,6 +19,9 @@
      (o/insert? op)
        {:tail (apply-ins op doc)
         :ops (conj (rest ops) (o/->Op :ret 1))}
+     (o/delete? op)
+       {:tail (apply-del op doc)
+        :ops (rest ops)}
      (o/retain? op)
        (merge (apply-ret op doc) {:ops (rest ops)})
      :else {:tail doc :ops nil})))
