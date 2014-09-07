@@ -24,7 +24,7 @@
 (deftest apply-ret-test
   (testing "Applying a retain operation splits the document at the retain count"
     (let [ret-op (operations/->Op :ret 2)
-          [head tail] (documents/apply-ret ret-op "hello")]
+          {:keys [head tail]} (documents/apply-ret ret-op "hello")]
       (is (= head "he"))
       (is (= tail "llo")))))
 
