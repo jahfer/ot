@@ -1,89 +1,76 @@
 (ns ot.transforms
-  (:require [ot.operations :as operations]))
-
-(defn delete-both? [op1 op2]
-  (= :del (:type op1) (:type op2)))
-
-(defn retain-both? [op1 op2]
-  (= :ret (:type op1) (:type op2)))
+  (:require [ot.operations :as o]))
 
 (defn insert [operation]
-  [operation, (operations/->Op :ret 1)])
+  [operation, (o/->Op :ret 1)])
 
 (defn retain [value]
-  [(operations/->Op :ret value) (operations/->Op :ret value)])
+  [(o/->Op :ret value) (o/->Op :ret value)])
 
 (defn retain-ops [ops1 ops2]
   (let [val1 (:val (first ops1))
         val2 (:val (first ops2))]
     (cond
      (> val1 val2)
-       (let [ops1 (operations/update-head ops1 (- val1 val2))]
+       (let [ops1 (update-in ops1 [0 :val] #(- % val2))]
          [ops1 (rest ops2) (retain val2)])
      (= val1 val2)
        [(rest ops1) (rest ops2) (retain val2)]
      :else
-       (let [ops2 (operations/update-head ops2 (- val2 val1))]
+       (let [ops2 (update-in ops2 [0 :val] #(- % val1))]
          [(rest ops1) ops2 (retain val1)]))))
 
-(defn start-index [ops]
-  (if (operations/retain? (first ops)) (:val (first ops)) 0))
-
-(defn merge-retains [& ops]
-  (operations/->Op :ret (reduce + (map :val ops))))
-
 (defn compress [ops]
-  (loop [ops ops, acc []]
-    (if (empty? ops)
-      acc
-      (let [op1 (first ops), op2 (second ops)]
-        (if (and (operations/retain? op1) (operations/retain? (peek acc)))
-          (recur (next ops) (conj (pop acc) (merge-retains (peek acc) op1)))
-          (recur (next ops) (conj acc op1)))))))
+  (reduce (fn [acc op]
+            (if (every? o/retain? (list op (peek acc)))
+              (update-in acc [(-> acc count dec) :val] #(+ % (:val op)))
+              (conj acc op)))
+          []
+          ops))
 
 (defn gen-inverse-ops [ops1 ops2 ops']
   (cond
-   (operations/insert? (first ops1))
+   (o/insert? (first ops1))
      (let [_ (println "-- insert first")
            ops' (-> (first ops1)
                     (insert)
-                    (operations/assoc-op ops'))]
+                    (o/assoc-op ops'))]
        [(rest ops1) ops2 ops'])
-   (operations/insert? (first ops2))
+   (o/insert? (first ops2))
      (let [_ (println "-- insert second")
            ops' (-> (first ops2)
                     (insert)
-                    (operations/assoc-op (reverse ops'))
+                    (o/assoc-op (reverse ops'))
                     (reverse))]
        [ops1 (rest ops2) ops'])
-   (retain-both? (first ops1) (first ops2))
+   (every? o/retain? (map first (list ops1 ops2)))
      (let [_ (println "-- retain both")
            [ops1 ops2 result] (retain-ops ops1 ops2)]
-       [ops1 ops2 (operations/assoc-op result ops')])
-   (delete-both? (first ops1) (first ops2))
+       [ops1 ops2 (o/assoc-op result ops')])
+   (every? o/delete? (map first (list ops1 ops2)))
      (let [_ (println "-- delete both")
            val1 (:val (first ops1))
            val2 (:val (first ops2))]
        (cond
-        (> (- val1) (- val2)) [(operations/update-head ops1 (- val1 val2)) (rest ops2) ops']
+        (> (- val1) (- val2)) [(update-in ops1 [0 :val] #(- % val2)) (rest ops2) ops']
         (= val1 val2) [(rest ops1) (rest ops2) ops']
-        :else [(rest ops1) (operations/update-head ops2 (- val2 val1))]))
-   (and (operations/delete? (first ops1)) (operations/retain? (first ops2)))
+        :else [(rest ops1) (update-in ops2 [0 :val] #(- % val1))]))
+   (and (o/delete? (first ops1)) (o/retain? (first ops2)))
      (let [_ (println "-- delete + retain")
            val1 (:val (first ops1))
            val2 (:val (first ops2))]
        (cond
-        (> val1 val2) [(operations/update-head ops1 (+ val1 val2)) (rest ops2) (operations/assoc-op (first ops2) ops')]
+        (> val1 val2) [(update-in ops1 [0 :val] #(+ % val2)) (rest ops2) (o/assoc-op (first ops2) ops')]
         (= val1 val2) [(rest ops1) (rest ops2) [(conj (first ops') (first ops1)) (second ops')]]
-        :else [(rest ops1) (+ val1 val2) (operations/assoc-op (assoc (first ops1) :val (- val1)) ops')]))
-   (and (operations/retain? (first ops1)) (operations/delete? (first ops2)))
+        :else [(rest ops1) (+ val1 val2) (o/assoc-op (assoc (first ops1) :val (- val1)) ops')]))
+   (and (o/retain? (first ops1)) (o/delete? (first ops2)))
      (let [_ (println "-- retain + delete")
            val1 (:val (first ops1))
            val2 (:val (first ops2))]
        (cond
-        (> val1 val2) [(operations/update-head ops1 (- val1 val2)) (rest ops2) (operations/assoc-op (assoc (first ops2) :val (- val2)) ops')]
+        (> val1 val2) [(update-in ops1 [0 :val] #(- % val2)) (rest ops2) (o/assoc-op (assoc (first ops2) :val (- val2)) ops')]
         (= val1 val2) [(rest ops1) (rest ops2) [(first ops') (conj (second ops') (first ops2))]]
-        :else [(rest ops1) (operations/update-head ops2 (- val2 val1)) (operations/assoc-op (first ops1) ops')]))
+        :else [(rest ops1) (update-in ops2 [0 :val] #(- % val1)) (o/assoc-op (first ops1) ops')]))
    :else
      (do
        (println "no cond found")
@@ -101,8 +88,8 @@
     (case (count ops)
       1 first-op
       2 (cond
-          (operations/retain? first-op) (second ops)
-          (operations/retain? (second ops)) first-op
-          :else nil)
-      3 (if (retain-both? first-op (peek ops)) (second ops) nil)
+          (o/retain? first-op) (second ops)
+          (o/retain? (second ops)) first-op)
+      3 (when (every? o/retain? (list first-op (peek ops)))
+          (second ops))
       :else nil)))

@@ -31,15 +31,14 @@
 (defmethod compose-ops :insert-and-delete [ops1 ops2 out]
   (let [val1 (:val (first ops1))
         val2 (:val (first ops2))
-        ops1' (if (> val1 val2) (o/update-head ops1 (- val1 val2)) (rest ops1))
-        ops2' (if (< val1 val2) (o/update-head ops2 (+ val1 val2)) (rest ops2))]
+        ops1' (if (> val1 val2) (assoc-in ops1 [0 :val] (- val1 val2)) (rest ops1))
+        ops2' (if (< val1 val2) (assoc-in ops2 [0 :val] (+ val1 val2)) (rest ops2))]
     [ops1' ops2' out]))
 
 (defmethod compose-ops :insert-and-retain [ops1 ops2 out]
-  (let [new-ret (dec (:val (first ops2)))
-           ops2 (if (zero? new-ret)
-                  (rest ops2)
-                  (o/update-head ops2 new-ret))]
+  (let [ops2 (if (= 1 (get-in ops2 [0 :val]))
+               (rest ops2)
+               (update-in ops2 [0 :val] dec))]
        [(rest ops1) ops2 (conj out (first ops1))]))
 
 (defn compose [a b]
