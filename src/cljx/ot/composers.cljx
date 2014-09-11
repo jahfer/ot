@@ -1,22 +1,21 @@
 (ns ot.composers
+  #+clj (:use[clojure.core.match :only (match)])
   (:require [ot.operations :as o]
-            [ot.transforms :as t]))
+            [ot.transforms :as t]
+            #+cljs [cljs.core.match])
+  #+cljs (:require-macros [cljs.core.match.macros :refer [match]]))
 
-(defn composition-type [ops1 ops2 out]
-  (let [op1 (first ops1)
-        op2 (first ops2)]
-    (cond
-     (o/delete? op1)               :apply-first
-     (o/insert? op2)               :apply-second
-     (every? o/retain? [op1 op2])  :retain
-     (o/insert? op1)
-       (cond
-        (o/delete? op2)            :insert-and-delete
-        (o/retain? op2)            :insert-and-retain
-        :else                      :apply-first)
-     (o/delete? op2)               :apply-second)))
-
-(defmulti compose-ops composition-type)
+(defmulti compose-ops 
+  (fn [ops1 ops2 _]
+    (let [op1 (first ops1)
+          op2 (first ops2)]
+      (match [(:type op1) (:type op2)]
+             [:del _]    :apply-first
+             [_ :ins]    :apply-second
+             [:ret :ret] :retain
+             [:ins :del] :insert-and-delete
+             [:ins :ret] :insert-and-retain
+             [_ :del]    :apply-second))))
 
 (defmethod compose-ops :retain [ops1 ops2 out]
   (let [[ops1 ops2 [result]] (t/retain-ops ops1 ops2)]
