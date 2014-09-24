@@ -7,7 +7,6 @@
 
 (defmulti compose-ops 
   (fn [ops1 ops2 _]
-
     (let [op1 (first ops1)
           op2 (first ops2)]
       (match [(:type op1) (:type op2)]
