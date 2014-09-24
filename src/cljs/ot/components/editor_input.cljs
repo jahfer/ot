@@ -10,7 +10,7 @@
 
 (enable-console-print!)
 
-(def rejected-keys ["Up" "Down" "Left" "Right"])
+(def rejected-keys [8 37 38 39 40])
 
 (defn caret-position
   "gets or sets the current cursor position"
@@ -39,16 +39,18 @@
         (conj op-list retain-after)))))
 
 (defn handle-keypress [e cursor comm]
-  (when (not (util/in? rejected-keys (.-key e)))
+  (when (not (util/in? rejected-keys (.-keyCode e)))
     (om/transact! cursor :caret #(caret-position))
     (let [key (util/keyFromCode (.-which e))
-          operations (match (.-key e)
-                            "Backspace" (let [op (gen-delete-op key cursor)]
-                                          (om/transact! cursor :caret dec)
-                                          op)
-                            _ (let [op (gen-insert-op key cursor)]
-                                (om/transact! cursor :caret inc)
-                                op))]
+          operations (gen-insert-op key cursor)]
+      (om/transact! cursor :caret inc)
+      (put! comm operations))))
+
+(defn handle-keydown [e cursor comm]
+  (om/transact! cursor :caret #(caret-position))
+  (when (= 8 (.-which e))
+    (let [operations (gen-delete-op key cursor)]
+      (om/transact! cursor :caret dec)
       (put! comm operations))))
 
 (defn editor-input [cursor owner opts]
@@ -62,4 +64,5 @@
     (render-state [this {:keys [comm]}]
                   (dom/textarea #js {:id "editor"
                                      :value (:text cursor)
-                                     :onKeyPress #(handle-keypress % cursor comm)}))))
+                                     :onKeyPress #(handle-keypress % cursor comm)
+                                     :onKeyDown #(handle-keydown % cursor comm)}))))
