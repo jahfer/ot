@@ -15,9 +15,10 @@
   (let [text (get-in @cursor [:input :text])
         new-text (documents/apply-ops text operations)
         current-id (:id @cursor)]
-    (om/transact! cursor [:input :text] (fn [_] new-text))
-    (om/transact! cursor :id #(gh/hash :md5 new-text))
-    (om/transact! cursor :parent-id (fn [_] current-id))))
+    (om/update! cursor [:input :text] new-text)
+    (om/update! cursor :id [(gh/hash :md5 new-text)])
+    (when (empty? (deref queue/buffer))
+      (om/update! cursor :parent-id current-id))))
 
 (defn editor [cursor owner]
   (reify
@@ -26,6 +27,7 @@
                 {:comm (chan)})
     om/IWillMount
     (will-mount [this]
+      (println cursor)
       (queue/init! cursor)
       (go-loop []
         (let [external-queue queue/inbound

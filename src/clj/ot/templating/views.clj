@@ -23,5 +23,5 @@
     [:div#app]
     (hic-p/include-js "/js/vendor/react-0.8.0.js")
     (hic-p/include-js "/js/vendor/jquery-1.10.2.min.js")
-    (hic-p/include-js "/js/main.js")
+    (hic-p/include-js "/js/out/main.js")
     [:script "goog.require('ot.core')"]]))

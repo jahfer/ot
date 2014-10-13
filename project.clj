@@ -1,4 +1,4 @@
-(def tk-version "0.4.2")
+(def tk-version "0.5.1")
 (def ks-version "0.5.3")
 
 (defproject ot "0.1.0"
@@ -17,7 +17,7 @@
 
   :ring {:handler ot.handler/app}
 
-  :profiles {:clj {:dependencies [[javax.servlet/servlet-api "2.5"]
+  :profiles {:dev {:dependencies [[javax.servlet/servlet-api "2.5"]
                                   [ring-mock "0.1.5"]
                                   [puppetlabs/trapperkeeper ~tk-version :classifier "test" :scope "test"]
                                   [puppetlabs/kitchensink ~ks-version :classifier "test" :scope "test"]
@@ -31,6 +31,7 @@
                                   [ring/ring-core "1.1.8"]
                                   [compojure "1.1.6"]
                                   [http-kit "2.1.16"]
+                                  [digest "1.4.4"]
                                   [com.cognitect/transit-clj "0.8.247"]
                                   [org.clojure/tools.nrepl "0.2.3"]
                                   [puppetlabs/trapperkeeper ~tk-version]
@@ -53,19 +54,20 @@
                                                               "test/cljs"
                                                               "target/generated/src/cljs"
                                                               "target/generated/test/cljs"]
-                                               :compiler {:output-to "resources/public/js/main.js"
-                                                          :output-dir "resources/public/out"
+                                               :compiler {:output-to "resources/public/js/out/main.js"
+                                                          :output-dir "resources/public/js/out"
                                                           :optimizations :whitespace
-                                                          :pretty-print true}}}
+                                                          :pretty-print true
+                                                          :source-map "resources/public/js/out/main.js.map"}}}
                                 :test-commands {"unit-tests" ["slimerjs" :runner
                                                               "resources/public/js/vendor/react-0.8.0.js"
                                                               "resources/public/js/vendor/jquery-1.10.2.min.js"
                                                               "resources/public/js/main.js"]}}}}
 
-  :aliases {"server" ["do" "cljx," "with-profile" "clj" "trampoline" "run" "--bootstrap-config" "resources/bootstrap.cfg" "--config" "resources/config.conf"]
+  :aliases {"server" ["do" "cljx," "trampoline" "run" "--bootstrap-config" "resources/bootstrap.cfg" "--config" "resources/config.conf"]
             "client" ["do" "cljx," "with-profile" "cljs" "cljsbuild" "auto" "dev"]
             "cljs-repl" ["with-profile" "cljs" "trampoline" "cljsbuild" "repl-listen"]
-            "clj-test" ["do" "cljx," "with-profile" "clj" "test"]
+            "clj-test" ["do" "cljx," "test"]
             "cljs-test" ["do" "cljx," "with-profile" "cljs" "cljsbuild" "test"]
             "clj-clean-test" ["do" "clean," "clj-test"]
             "cljs-clean-test" ["do" "clean," "cljs-test"]

@@ -6,6 +6,7 @@
             [clojure.edn :as edn]
             [compojure.route :as route]
             [cognitect.transit :as transit]
+            [digest]
             [ot.templating.views :as views]
             [ot.transforms :refer :all]
             [ot.documents :as documents]
@@ -15,13 +16,19 @@
 (declare async-handler)
 
 (def root-document (atom "Hullo"))
+(def history (atom []))
+
+(defn transaction-id [text]
+  (digest/md5 text))
 
 (defroutes editor-routes
   (GET "/" [] (views/home-page))
   (GET "/documents/:id" [] (fn [{params :params}]
                              {:status 200
                               :headers {"Content-Type" "application/edn"}
-                              :body (pr-str {:id (:id params) :doc @root-document})}))
+                              :body (pr-str {:id    (:id params)
+                                             :doc   @root-document
+                                             :tx-id (transaction-id @root-document)})}))
   (GET "/ws" [] async-handler))
 
 (defroutes app-routes
@@ -50,14 +57,22 @@
             in (ByteArrayInputStream. (.getBytes data))
             reader (transit/reader in :json {:handlers transit-handlers/read-handlers})
             parsed-data (transit/read reader)]
-        (println "Received from client:")
+
+        (log/info "[Received]")
         (clojure.pprint/pprint parsed-data)
 
-        (println (take 30 (repeat "-")))
+        (println (->> (repeat "-") (take 30) clojure.string/join))
         (swap! root-document documents/apply-ops (:ops parsed-data))
         (println @root-document)
-        (println (take 30 (repeat "-")))
+        (println (->> (repeat "-") (take 30) clojure.string/join))
 
+        (let [{:keys [id ops] :as data} parsed-data]
+          (swap! history conj data)
+          (clojure.pprint/print-table [:id :parent-id :ops]
+                                      (mapv (fn [data]
+                                              (update-in data [:ops] (fn [o]
+                                                                       (mapv (fn [{:keys [type val]}] {type val}) o))))
+                                            @history)))
         (broadcast data)))))
 
 (defn shutdown []

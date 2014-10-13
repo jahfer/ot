@@ -10,7 +10,7 @@
 (enable-console-print!)
 
 ;; Define intial state of app
-(def app-state (atom {:editor {:id [0]
+(def app-state (atom {:editor {:id []
                                :parent-id []
                                :owned-ids []
                                :input {:caret 0
@@ -32,6 +32,7 @@
 (defn setup! []
   (let-ajax [remote-doc {:url "/editor/documents/1"}]
             (swap! app-state assoc-in [:editor :input :text] (:doc remote-doc))
+            (swap! app-state assoc-in [:editor :id] [(:tx-id remote-doc)])
             (main (sel1 :#app) app-state)))
 
 (ready [] (setup!))
