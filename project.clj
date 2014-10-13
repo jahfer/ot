@@ -17,7 +17,7 @@
 
   :ring {:handler ot.handler/app}
 
-  :profiles {:dev {:dependencies [[javax.servlet/servlet-api "2.5"]
+  :profiles {:clj {:dependencies [[javax.servlet/servlet-api "2.5"]
                                   [ring-mock "0.1.5"]
                                   [puppetlabs/trapperkeeper ~tk-version :classifier "test" :scope "test"]
                                   [puppetlabs/kitchensink ~ks-version :classifier "test" :scope "test"]
@@ -62,16 +62,16 @@
                                 :test-commands {"unit-tests" ["slimerjs" :runner
                                                               "resources/public/js/vendor/react-0.8.0.js"
                                                               "resources/public/js/vendor/jquery-1.10.2.min.js"
-                                                              "resources/public/js/main.js"]}}}}
+                                                              "resources/public/js/out/main.js"]}}}}
 
   :aliases {"server" ["do" "cljx," "trampoline" "run" "--bootstrap-config" "resources/bootstrap.cfg" "--config" "resources/config.conf"]
             "client" ["do" "cljx," "with-profile" "cljs" "cljsbuild" "auto" "dev"]
             "cljs-repl" ["with-profile" "cljs" "trampoline" "cljsbuild" "repl-listen"]
-            "clj-test" ["do" "cljx," "test"]
+            "clj-test" ["do" "cljx," "with-profile" "clj" "test"]
             "cljs-test" ["do" "cljx," "with-profile" "cljs" "cljsbuild" "test"]
             "clj-clean-test" ["do" "clean," "clj-test"]
             "cljs-clean-test" ["do" "clean," "cljs-test"]
-            "all-tests" ["do" "clean," "cljx," "clj-test," "cljs-test"]}
+            "all-tests" ["do" "clean," "clj-test," "cljs-test"]}
 
 ;  :hooks [cljx.hooks]
 

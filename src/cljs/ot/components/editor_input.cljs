@@ -29,7 +29,7 @@
       (let [retain-after (operations/->Op :ret chars-remaining)]
         (conj op-list retain-after)))))
 
-(defn gen-delete-op [key cursor]
+(defn gen-delete-op [cursor]
   (let [caret-loc (:caret @cursor)
         op-list (operations/oplist :ret (dec caret-loc) :del 1)
         chars-remaining (- (count (:text @cursor)) caret-loc)]
@@ -49,7 +49,7 @@
 (defn handle-keydown [e cursor comm]
   (om/transact! cursor :caret #(caret-position))
   (when (= 8 (.-which e))
-    (let [operations (gen-delete-op key cursor)]
+    (let [operations (gen-delete-op cursor)]
       (om/transact! cursor :caret dec)
       (put! comm operations))))
 
