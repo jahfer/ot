@@ -64,7 +64,7 @@
                                                               "resources/public/js/vendor/jquery-1.10.2.min.js"
                                                               "resources/public/js/out/main.js"]}}}}
 
-  :aliases {"server" ["do" "cljx," "trampoline" "run" "--bootstrap-config" "resources/bootstrap.cfg" "--config" "resources/config.conf"]
+  :aliases {"server" ["do" "cljx," "with-profile" "clj" "trampoline" "run" "--bootstrap-config" "resources/bootstrap.cfg" "--config" "resources/config.conf"]
             "client" ["do" "cljx," "with-profile" "cljs" "cljsbuild" "auto" "dev"]
             "cljs-repl" ["with-profile" "cljs" "trampoline" "cljsbuild" "repl-listen"]
             "clj-test" ["do" "cljx," "with-profile" "clj" "test"]

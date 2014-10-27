@@ -25,3 +25,10 @@
     (hic-p/include-js "/js/vendor/jquery-1.10.2.min.js")
     (hic-p/include-js "/js/out/main.js")
     [:script "goog.require('ot.core')"]]))
+
+(defn iframed-test []
+  (hic-p/html5
+   (gen-page-head "OT Editor - Testing")
+   [:body
+    [:iframe {:src "http://localhost:3000/editor" :class "test-editor"}]
+    [:iframe {:src "http://localhost:3000/editor" :class "test-editor"}]]))

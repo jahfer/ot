@@ -24,3 +24,11 @@ body {
   padding: 10px;
   box-sizing: border-box;
 }
+
+.test-editor {
+    width: 600px;
+    height: 220px;
+    display: block;
+    margin: 0 auto;
+    border: none;
+}

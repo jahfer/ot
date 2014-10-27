@@ -29,7 +29,8 @@
                               :body (pr-str {:id    (:id params)
                                              :doc   @root-document
                                              :tx-id (transaction-id @root-document)})}))
-  (GET "/ws" [] async-handler))
+  (GET "/ws" [] async-handler)
+  (GET "/test" [] (views/iframed-test)))
 
 (defroutes app-routes
   (route/resources "/")
