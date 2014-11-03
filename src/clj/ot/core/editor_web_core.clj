@@ -18,7 +18,9 @@
 (declare async-handler)
 
 (def root-document (atom "Hullo"))
-(def history (atom #{}))
+(def history (atom (sorted-set-by (fn [a b]
+                                    (< (:id a) (:id b))))))
+(def doc-version (atom 0))
 
 (defn transaction-id [text]
   (digest/md5 text))
@@ -30,9 +32,9 @@
                               :headers {"Content-Type" "application/edn"}
                               :body (pr-str {:id    (:id params)
                                              :doc   @root-document
-                                             :tx-id (transaction-id @root-document)})}))
+                                             :tx-id @doc-version})}))
   (GET "/ws" [] async-handler)
-  (GET "/test" [] (views/iframed-test)))
+  (GET "/iframe" [] (views/iframed-test)))
 
 (defroutes app-routes
   (route/resources "/")
@@ -80,58 +82,93 @@
 (defn append-to-history! [evt]
   (swap! history conj evt))
 
+(defn write-message [msg]
+  (let [out (ByteArrayOutputStream. 4096)
+        writer (transit/writer out :json {:handlers transit-handlers/write-handlers})]
+    (transit/write writer msg)
+    (.toString out)))
+
 (defn handle-connections []
   (go
     (while true
-      (let [data (<! input)
-            in (ByteArrayInputStream. (.getBytes data))
+      (let [raw-data (<! input)
+            in (ByteArrayInputStream. (.getBytes raw-data))
             reader (transit/reader in :json {:handlers transit-handlers/read-handlers})
-            parsed-data (transit/read reader)]
+            {:keys [parent-id ops] :as data} (transit/read reader)]
+        (if (or (server-parented? parent-id) (not (seq @history)))
+          (let [ops-since-id (operations-since-id parent-id)
+                data (assoc data :id (swap! doc-version inc))]
+            (log/info "ID assigned" data)
+            (if (seq ops-since-id)
+              (let [_ (log/info "Rebasing incoming operations")
+                    _ (log/debug "Ops diff:" (map :ops ops-since-id))
+                    server-ops (reduce composers/compose (map :ops ops-since-id))
+                    _ (log/debug "Server ops:" server-ops)
+                    evt (update-in data [:ops] #(first (transform % server-ops)))]
+                (update-root-doc! (:ops evt))
+                (append-to-history! evt)
+                (log/info "Applied event" evt)
+                (broadcast (write-message evt)))
+              (do
+                (log/info "Clean merge")
+                (append-to-history! data)
+                (update-root-doc! ops)
+                (broadcast (write-message data)))))
+          (do
+            (log/error "Rejected operation" parent-id  "Not parented on server's history")
+            (log/error @history)))))))
 
-        (println)
-        (println (->> (repeat "=") (take 120) clojure.string/join))
+;; (defn handle-connections []
+;;   (go
+;;     (while true
+;;       (let [data (<! input)
+;;             in (ByteArrayInputStream. (.getBytes data))
+;;             reader (transit/reader in :json {:handlers transit-handlers/read-handlers})
+;;             parsed-data (transit/read reader)]
 
-        (let [{:keys [id ops parent-id] :as formatted-data} parsed-data]
-          (println "RECEIVED OPERATION")
-          (print-ops [formatted-data])
+;;         (println)
+;;         (println (->> (repeat "=") (take 120) clojure.string/join))
 
-          (if (or (server-parented? parent-id) (not (seq @history)))
-            (do
-              (let [ops-since-id (operations-since-id parent-id)]
+;;         (let [{:keys [ops parent-id] :as formatted-data} parsed-data]
+;;           (println "RECEIVED OPERATION")
+;;           (print-ops [formatted-data])
+
+;;           (if (or (server-parented? parent-id) (not (seq @history)))
+;;             (do
+;;               (let [ops-since-id (operations-since-id parent-id)]
                 
-                (println)
-                (println "OPERATIONS SINCE" parent-id)
-                (if (seq ops-since-id)
-                  (print-ops ops-since-id)
-                  (println "No operations found."))
+;;                 (println)
+;;                 (println "OPERATIONS SINCE" parent-id)
+;;                 (if (seq ops-since-id)
+;;                   (print-ops ops-since-id)
+;;                   (println "No operations found."))
 
-                (if (seq ops-since-id)
-                  (let [server-ops (reduce composers/compose (map :ops ops-since-id))
-                        [ops' _] (transform ops server-ops)
-                        evt (assoc-in formatted-data [:ops] ops')
-                        out (ByteArrayOutputStream. 4096)
-                        writer (transit/writer out :json {:handlers transit-handlers/write-handlers})]
+;;                 (if (seq ops-since-id)
+;;                   ; rebase incoming operations
+;;                   (let [server-ops (reduce composers/compose (map :ops ops-since-id))
+;;                         evt (update-in formatted-data [:ops] #(first (transform % server-ops)))
+;;                         out (ByteArrayOutputStream. 4096)
+;;                         writer (transit/writer out :json {:handlers transit-handlers/write-handlers})]
 
-                    (update-root-doc! ops')
+;;                     (update-root-doc! (:ops evt))
+;;                     (append-to-history! evt)
                     
-                    (let [evt (assoc-in evt [:parent-id] [(transaction-id @root-document)])]
-                      (append-to-history! evt)
-                      (transit/write writer evt)
-                      (broadcast (.toString out))))
-                  (do
-                    (append-to-history! formatted-data)
-                    (update-root-doc! ops)
-                    (broadcast data))))
+;;                     (transit/write writer evt)
+;;                     (broadcast (.toString out)))
+;;                   (do
+;;                     (append-to-history! formatted-data)
+;;                     (update-root-doc! ops)
+;;                     (broadcast data))))
               
-              (println)
-              (println "HISTORY")
-              (print-ops @history)
+;;               (println)
+;;               (println "HISTORY")
+;;               (print-ops @history)
               
-              (println)
-              (println "RESULTING TEXT")
-              (println @root-document))
-            ; else
-            (println "!!!" "REJECTED OPERATION")))))))
+;;               (println)
+;;               (println "RESULTING TEXT")
+;;               (println @root-document))
+;;             ; else
+;;             (println "!!!" "REJECTED OPERATION")))))))
 
 (defn shutdown []
   (doseq [client @clients]

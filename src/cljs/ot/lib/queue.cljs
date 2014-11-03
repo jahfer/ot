@@ -14,7 +14,7 @@
 (def buffer (atom []))
 (def sent-ids (chan))
 (def recv-ids (chan))
-(def last-client-op (atom []))
+(def last-client-op (atom [])) ; last sent operation
 
 (enable-console-print!)
 
@@ -35,17 +35,17 @@
   "Blocking routine that throttles outbound operations.
   Waits for confirmation on previous operation before
   sending the new operation."
-  [[id parent-id]]
+  [[local-id parent-id]]
   (go (while true
     (let [_ (<! confirmation)
           _ (<! buffer-has-item)
           buf (flush-buffer!)]
       (if (seq buf)
-        (let [data {:id @id :parent-id @parent-id :ops buf}
+        (let [data {:local-id @local-id :parent-id (first @parent-id) :ops buf}
               writer (transit/writer :json {:handlers transit-handlers/write-handlers})
               serialized (transit/write writer data)]
           (println "[bq <~] Sending operation to the server")
-          (put! sent-ids @id)
+          (put! sent-ids @local-id)
           (ws/send serialized)))))))
 
 (defn recv-queue
@@ -58,15 +58,16 @@
         (let [response (<! ws/recv)
               reader (transit/reader :json {:handlers transit-handlers/read-handlers})
               data (transit/read reader response)
-              id (:id data)]
-          (println "[iq ->] Received operation from server")
-          (if (util/in? @owned-ids id)
+              local-id (:local-id data)
+              version (:id data)]
+          (println "[iq ->] Received operation from server" version)
+          (if (util/in? @owned-ids local-id)
             (do
               (println "  [...] Confirmed operation roundtrip success")
-              (put! recv-ids id)
+              (put! recv-ids {:local-id local-id :version version})
               (put! confirmation response)
               (reset! last-client-op []))
-            (put! inbound (:ops data)))))))
+            (put! inbound data))))))
 
 (defn init!
   "Initializes the event queues that manage the in-flow
@@ -75,4 +76,4 @@
   (ws/init!)
   (put! confirmation true)
   (recv-queue (:owned-ids cursor))
-  (buffer-queue [(:id cursor) (:parent-id cursor)]))
+  (buffer-queue [(:local-id cursor) (:parent-id cursor)]))

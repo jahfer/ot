@@ -16,7 +16,7 @@
              [:ins :ret] :insert-and-retain
              [:ins :del] :insert-and-delete
              [:ret :del] :retain-and-delete
-             [_ :del] :apply-second))))
+             [_ :del]    :apply-second))))
 
 (defmethod compose-ops :retain [ops1 ops2 out]
   (let [[ops1 ops2 [result]] (t/retain-ops ops1 ops2)]
