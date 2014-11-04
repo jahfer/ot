@@ -16,14 +16,17 @@
             [clojure.core.async :refer [go put! <! chan]]))
 
 (declare async-handler)
+(declare broadcast)
 
 (def root-document (atom "Hullo"))
+(def doc-version (atom 0))
+(def input (chan))
+(def clients (atom {}))
 (def history (atom (sorted-set-by (fn [a b]
                                     (< (:id a) (:id b))))))
-(def doc-version (atom 0))
-
-(defn transaction-id [text]
-  (digest/md5 text))
+(defroutes app-routes
+  (route/resources "/")
+  (route/not-found "Not found"))
 
 (defroutes editor-routes
   (GET "/" [] (views/home-page))
@@ -36,18 +39,6 @@
   (GET "/ws" [] async-handler)
   (GET "/iframe" [] (views/iframed-test)))
 
-(defroutes app-routes
-  (route/resources "/")
-  (route/not-found "Not found"))
-
-(def input (chan))
-(def clients (atom {}))
-
-(declare broadcast)
-
-(defn indices [pred coll]
-   (keep-indexed #(when (pred %2) %1) coll))
-
 (defn async-handler [req]
   (with-channel req ch
     (swap! clients assoc ch true)
@@ -58,23 +49,11 @@
                    (swap! clients dissoc ch)
                    (log/info "closed channel:" status)))))
 
-(defn history-by-id []
-  (clojure.set/index @history :id))
-
 (defn operations-since-id [id]
-  (let [n (first (indices #(= (:parent-id %) id) @history))]
-    (when n
-      (drop n @history))))
+  (rest (drop-while #(not (= (:id %) id)) @history)))
 
 (defn server-parented? [received-id]
   (some #(= received-id %) (map :id @history)))
-
-(defn print-ops [coll]
-  (clojure.pprint/print-table [:id :parent-id :ops]
-                              (mapv (fn [data]
-                                      (update-in data [:ops] (fn [o]
-                                                               (mapv (fn [{:keys [type val]}] {type val}) o))))
-                                    coll)))
 
 (defn update-root-doc! [ops]
   (swap! root-document documents/apply-ops ops))
@@ -95,80 +74,38 @@
             in (ByteArrayInputStream. (.getBytes raw-data))
             reader (transit/reader in :json {:handlers transit-handlers/read-handlers})
             {:keys [parent-id ops] :as data} (transit/read reader)]
+        (println)
+        (println (clojure.string/join (repeatedly 120 (fn [] "="))))
+        (log/info "Received:")
+        (clojure.pprint/print-table [:parent-id :local-id :ops] [data])
+        (println)
         (if (or (server-parented? parent-id) (not (seq @history)))
           (let [ops-since-id (operations-since-id parent-id)
                 data (assoc data :id (swap! doc-version inc))]
-            (log/info "ID assigned" data)
+            (log/debug "ID assigned" (:id data))
             (if (seq ops-since-id)
-              (let [_ (log/info "Rebasing incoming operations")
-                    _ (log/debug "Ops diff:" (map :ops ops-since-id))
+              (let [_ (log/debug "Rebasing incoming operations")
                     server-ops (reduce composers/compose (map :ops ops-since-id))
-                    _ (log/debug "Server ops:" server-ops)
+                    _ (log/debug "Rebasing on tx IDs" (map :id ops-since-id))
                     evt (update-in data [:ops] #(first (transform % server-ops)))]
                 (update-root-doc! (:ops evt))
                 (append-to-history! evt)
-                (log/info "Applied event" evt)
-                (broadcast (write-message evt)))
+                (broadcast (write-message evt))
+                (log/info "Applied, stored and broadcasted:")
+                (clojure.pprint/print-table [:id :parent-id :local-id :ops] [evt]))
               (do
-                (log/info "Clean merge")
+                (log/debug "Clean merge")
                 (append-to-history! data)
                 (update-root-doc! ops)
-                (broadcast (write-message data)))))
+                (broadcast (write-message data))
+                (log/info "Applied, stored and broadcasted:")
+                (clojure.pprint/print-table [:id :parent-id :local-id :ops] [data]))))
           (do
             (log/error "Rejected operation" parent-id  "Not parented on server's history")
-            (log/error @history)))))))
-
-;; (defn handle-connections []
-;;   (go
-;;     (while true
-;;       (let [data (<! input)
-;;             in (ByteArrayInputStream. (.getBytes data))
-;;             reader (transit/reader in :json {:handlers transit-handlers/read-handlers})
-;;             parsed-data (transit/read reader)]
-
-;;         (println)
-;;         (println (->> (repeat "=") (take 120) clojure.string/join))
-
-;;         (let [{:keys [ops parent-id] :as formatted-data} parsed-data]
-;;           (println "RECEIVED OPERATION")
-;;           (print-ops [formatted-data])
-
-;;           (if (or (server-parented? parent-id) (not (seq @history)))
-;;             (do
-;;               (let [ops-since-id (operations-since-id parent-id)]
-                
-;;                 (println)
-;;                 (println "OPERATIONS SINCE" parent-id)
-;;                 (if (seq ops-since-id)
-;;                   (print-ops ops-since-id)
-;;                   (println "No operations found."))
-
-;;                 (if (seq ops-since-id)
-;;                   ; rebase incoming operations
-;;                   (let [server-ops (reduce composers/compose (map :ops ops-since-id))
-;;                         evt (update-in formatted-data [:ops] #(first (transform % server-ops)))
-;;                         out (ByteArrayOutputStream. 4096)
-;;                         writer (transit/writer out :json {:handlers transit-handlers/write-handlers})]
-
-;;                     (update-root-doc! (:ops evt))
-;;                     (append-to-history! evt)
-                    
-;;                     (transit/write writer evt)
-;;                     (broadcast (.toString out)))
-;;                   (do
-;;                     (append-to-history! formatted-data)
-;;                     (update-root-doc! ops)
-;;                     (broadcast data))))
-              
-;;               (println)
-;;               (println "HISTORY")
-;;               (print-ops @history)
-              
-;;               (println)
-;;               (println "RESULTING TEXT")
-;;               (println @root-document))
-;;             ; else
-;;             (println "!!!" "REJECTED OPERATION")))))))
+            (log/error @history)))
+        (println)
+        (log/info "Current history state:")
+        (clojure.pprint/print-table [:id :parent-id :ops] @history)))))
 
 (defn shutdown []
   (doseq [client @clients]
@@ -177,7 +114,6 @@
   (log/info "Finished closing of websocket clients"))
 
 (defn broadcast [msg]
-  (log/debug "emitting message to client" msg)
   (Thread/sleep 2000)
   (doseq [client @clients]
     (send! (key client) msg)))
