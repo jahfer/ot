@@ -18,3 +18,10 @@
 
 (defn toInt [num]
   (js/parseInt num 10))
+
+(defn unique-id []
+  (loop [id ""]
+    (let [new-id (+ id (.substr (.toString (.random js/Math) 36) 2))]
+      (if (> (.-length new-id) 8)
+        (+ "client-" new-id)
+        (recur new-id)))))

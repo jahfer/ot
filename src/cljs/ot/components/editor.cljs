@@ -5,33 +5,95 @@
             [cljs-hash.goog :as gh]
             [ot.components.editor-input :as input]
             [ot.lib.queue :as queue]
+            [ot.lib.util :as util]
+            [ot.operations :as operations]
             [ot.documents :as documents]
             [ot.transforms :as transforms])
   (:require-macros [cljs.core.async.macros :refer [go go-loop alt!]]))
 
 (enable-console-print!)
 
-(defn unique-id []
-  (loop [id ""]
-    (let [new-id (+ id (.substr (.toString (.random js/Math) 36) 2))]
-      (if (> (.-length new-id) 8)
-        (+ "client-" new-id)
-        (recur new-id)))))
+(defn editor [editor owner]
+  (reify
+    om/IRenderState
+    (render-state [this {:keys [text] :as state}]
+      (dom/textarea #js {:id "editor"
+                         :value text}))))
+
+(defn caret-position
+  "gets or sets the current cursor position"
+  ([owner]
+   (util/toInt (.-selectionStart (om/get-node owner "editor"))))
+  ([owner new-pos]
+   (let [editor (om/get-node owner "editor")]
+     (.setSelectionRange editor new-pos new-pos))))
+
+(defn gen-insert-op [key caret text]
+  (let [op-list (operations/oplist :ret caret :ins key)
+        chars-remaining (- (count text) caret)]
+    (if (zero? chars-remaining)
+      op-list
+      (conj op-list (operations/->Op :ret chars-remaining)))))
+
+(def rejected-keys [8 37 38 39 40])
+
+(defn handle-keypress [e owner {:keys [comm]}]
+  (when (not (util/in? rejected-keys (.-keyCode e)))
+    (let [key (util/keyFromCode (.-which e))
+          op (gen-insert-op key (om/get-state owner :caret) (om/get-state owner :text))]
+      (om/update-state! owner :caret inc)
+      (om/update-state! owner :text #(documents/apply-ops % op))
+      (put! comm op))))
+
+(defn editor-view [app owner]
+  (reify
+    om/IInitState
+    (init-state [this]
+      {:comm (chan)
+       :caret 0
+       :text ""})
+    om/IWillMount
+    (will-mount [this]
+      (queue/init! app)
+      (let [comm (om/get-state owner :comm)]
+        (go-loop []
+          (let [ops (<! comm)]
+            (om/update! app [:local-id] (util/unique-id))
+            (queue/send ops)
+            (recur)))
+        (go-loop []
+          (let [id (<! queue/sent-ids)]
+            (om/transact! app :owned-ids #(conj % id))
+            (recur)))
+        (go-loop []
+          (let [{:keys [local-id version]} (<! queue/recv-ids)]
+            (om/transact! app :owned-ids #(vec (remove #{local-id} %)))
+            (om/update! app :parent-id [version])))))
+    om/IRenderState
+    (render-state [this state]
+      (dom/div nil
+               (dom/textarea #js {:type "text"
+                                  :ref "editor"
+                                  :value (:text state)
+                                  :onKeyPress #(handle-keypress % owner state)})))))
+
+
+;; ------------------------------------------------------------------------
+
 
 (defn update-contents! [operations cursor]
   (let [text (get-in @cursor [:input :text])
         new-text (documents/apply-ops text operations)]
     (om/update! cursor [:input :text] new-text)
-    (om/update! cursor [:local-id] (unique-id))))
+    (om/update! cursor [:local-id] (util/unique-id))))
 
-(defn editor [cursor owner]
+(defn editor-view-old [cursor owner]
   (reify
     om/IInitState
     (init-state [this]
                 {:comm (chan)})
     om/IWillMount
     (will-mount [this]
-      (println cursor)
       (queue/init! cursor)
       (go-loop []
         (let [external-queue queue/inbound
@@ -59,7 +121,7 @@
                                  (update-contents! operations cursor))
                                         ; acknowledge that we're on the latest parent
                                (println "Updating parent-id to" (:id data))
-                               (om/update! cursor :parent-id [(:id data)])))
+                               (om/update! cursor [:parent-id] [(:id data)])))
 
            internal-queue ([operations]
                              (update-contents! operations cursor)
@@ -69,7 +131,7 @@
                              (om/transact! cursor :owned-ids #(conj % sent-id)))
            queue/recv-ids ([{:keys [local-id version]}]
                              (println "Updating parent-id to" version)
-                             (om/update! cursor :parent-id [version])
+                             (om/update! cursor [:parent-id] [version])
                              (om/transact! cursor :owned-ids #(remove #{local-id} %))))
           (recur))))
     om/IRenderState

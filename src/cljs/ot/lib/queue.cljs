@@ -6,7 +6,7 @@
             [om.core :as om :include-macros true]
             [ot.composers :as composers]
             [cognitect.transit :as transit])
-  (:require-macros [cljs.core.async.macros :refer [go]]))
+  (:require-macros [cljs.core.async.macros :refer [go go-loop]]))
 
 (def confirmation (chan))
 (def inbound (chan))
@@ -36,17 +36,20 @@
   Waits for confirmation on previous operation before
   sending the new operation."
   [[local-id parent-id]]
-  (go (while true
+  (go-loop []
     (let [_ (<! confirmation)
           _ (<! buffer-has-item)
           buf (flush-buffer!)]
       (if (seq buf)
-        (let [data {:local-id @local-id :parent-id (first @parent-id) :ops buf}
+        (let [data {:local-id @local-id
+                    :parent-id (first @parent-id)
+                    :ops buf}
               writer (transit/writer :json {:handlers transit-handlers/write-handlers})
               serialized (transit/write writer data)]
-          (println "[bq <~] Sending operation to the server")
+          (println "[bq <~] Sending operations to the server")
           (put! sent-ids @local-id)
-          (ws/send serialized)))))))
+          (ws/send serialized)))
+      (recur))))
 
 (defn recv-queue
   "Routine to receive operations from server. When the
@@ -60,7 +63,7 @@
               data (transit/read reader response)
               local-id (:local-id data)
               version (:id data)]
-          (println "[iq ->] Received operation from server" version)
+          (println "[iq ->] Received operation from server")
           (if (util/in? @owned-ids local-id)
             (do
               (println "  [...] Confirmed operation roundtrip success")

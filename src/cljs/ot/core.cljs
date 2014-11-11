@@ -13,8 +13,7 @@
 (def app-state (atom {:editor {:local-id []
                                :parent-id []
                                :owned-ids []
-                               :input {:caret 0
-                                       :text nil}}}))
+                               :input {:text nil}}}))
 
 ;; Entrance point
 (defn ot-app [app owner]
@@ -24,7 +23,7 @@
             (dom/div #js {:className "container"}
                      (dom/header nil
                                  (dom/h1 #js {:className "page-title"} "Editor"))
-                     (om/build editor/editor (:editor app))))))
+                     (om/build editor/editor-view (:editor app))))))
 
 (defn main [target state]
   (om/root ot-app state {:target target}))
