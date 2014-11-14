@@ -12,6 +12,7 @@
             [ot.transforms :refer :all]
             [ot.documents :as documents]
             [ot.composers :as composers]
+            [ot.operations :as operations]
             [ot.transit-handlers :as transit-handlers]
             [clojure.core.async :refer [go put! <! chan]]))
 
@@ -33,9 +34,9 @@
   (GET "/documents/:id" [] (fn [{params :params}]
                              {:status 200
                               :headers {"Content-Type" "application/edn"}
-                              :body (pr-str {:id    (:id params)
-                                             :doc   @root-document
-                                             :tx-id @doc-version})}))
+                              :body (pr-str {:id      (:id params)
+                                             :doc     @root-document
+                                             :version @doc-version})}))
   (GET "/ws" [] async-handler)
   (GET "/iframe" [] (views/iframed-test)))
 
@@ -77,7 +78,8 @@
         (println)
         (println (clojure.string/join (repeatedly 120 (fn [] "="))))
         (log/info "Received:")
-        (clojure.pprint/print-table [:parent-id :local-id :ops] [data])
+        (clojure.pprint/print-table [:parent-id :local-id :ops]
+                                    [(update-in data [:ops] operations/print-ops)])
         (println)
         (if (or (server-parented? parent-id) (not (seq @history)))
           (let [ops-since-id (operations-since-id parent-id)
@@ -92,20 +94,23 @@
                 (append-to-history! evt)
                 (broadcast (write-message evt))
                 (log/info "Applied, stored and broadcasted:")
-                (clojure.pprint/print-table [:id :parent-id :local-id :ops] [evt]))
+                (clojure.pprint/print-table [:id :parent-id :local-id :ops]
+                                            [(update-in evt [:ops] operations/print-ops)]))
               (do
                 (log/debug "Clean merge")
                 (append-to-history! data)
                 (update-root-doc! ops)
                 (broadcast (write-message data))
                 (log/info "Applied, stored and broadcasted:")
-                (clojure.pprint/print-table [:id :parent-id :local-id :ops] [data]))))
+                (clojure.pprint/print-table [:id :parent-id :local-id :ops]
+                                            [(update-in data [:ops] operations/print-ops)]))))
           (do
             (log/error "Rejected operation" parent-id  "Not parented on server's history")
             (log/error @history)))
         (println)
         (log/info "Current history state:")
-        (clojure.pprint/print-table [:id :parent-id :ops] @history)))))
+        (clojure.pprint/print-table [:id :parent-id :ops]
+                                    (map #(update-in % [:ops] operations/print-ops) @history))))))
 
 (defn shutdown []
   (doseq [client @clients]

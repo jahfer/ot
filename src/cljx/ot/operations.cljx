@@ -5,6 +5,9 @@
 (defn oplist [& operations]
   (mapv #(apply ->Op %) (partition 2 operations)))
 
+(defn print-ops [operations]
+  (pr-str (mapcat #(list (:type %) (:val %)) operations)))
+
 (defn conj-ops [op-lists new-ops]
   (map conj op-lists new-ops))
 

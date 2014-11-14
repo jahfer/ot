@@ -11,43 +11,40 @@
 (def confirmation (chan))
 (def inbound (chan))
 (def buffer-has-item (chan))
-(def buffer (atom []))
+(def buffer (atom {}))
 (def sent-ids (chan))
 (def recv-ids (chan))
 (def last-client-op (atom [])) ; last sent operation
 
 (enable-console-print!)
 
-(defn send [op]
+(defn send [data]
   (if (empty? @buffer)
     (do
-      (reset! buffer op)
+      (reset! buffer data)
       (put! buffer-has-item true))
-    (swap! buffer composers/compose op)))
+    (swap! buffer #(update-in % [:ops] composers/compose (:ops data)))))
 
 (defn flush-buffer! []
   (let [buf-contents @buffer]
-    (reset! last-client-op @buffer)
-    (reset! buffer [])
+    (reset! last-client-op (:ops @buffer))
+    (reset! buffer {})
     buf-contents))
 
 (defn buffer-queue
   "Blocking routine that throttles outbound operations.
   Waits for confirmation on previous operation before
   sending the new operation."
-  [[local-id parent-id]]
+  []
   (go-loop []
     (let [_ (<! confirmation)
           _ (<! buffer-has-item)
-          buf (flush-buffer!)]
-      (if (seq buf)
-        (let [data {:local-id @local-id
-                    :parent-id (first @parent-id)
-                    :ops buf}
-              writer (transit/writer :json {:handlers transit-handlers/write-handlers})
-              serialized (transit/write writer data)]
+          buf (flush-buffer!)] ; {:local-id :parent-id :ops}
+      (if (seq (:ops buf))
+        (let [writer (transit/writer :json {:handlers transit-handlers/write-handlers})
+              serialized (transit/write writer buf)]
           (println "[bq <~] Sending operations to the server")
-          (put! sent-ids @local-id)
+          (put! sent-ids (:local-id buf))
           (ws/send serialized)))
       (recur))))
 
@@ -62,12 +59,14 @@
               reader (transit/reader :json {:handlers transit-handlers/read-handlers})
               data (transit/read reader response)
               local-id (:local-id data)
-              version (:id data)]
+              server-id (:id data)]
           (println "[iq ->] Received operation from server")
           (if (util/in? @owned-ids local-id)
             (do
               (println "  [...] Confirmed operation roundtrip success")
-              (put! recv-ids {:local-id local-id :version version})
+              (put! recv-ids {:local-id local-id :server-id server-id})
+              (when (seq (:ops @buffer))
+                (swap! buffer assoc :parent-id server-id))
               (put! confirmation response)
               (reset! last-client-op []))
             (put! inbound data))))))
@@ -79,4 +78,4 @@
   (ws/init!)
   (put! confirmation true)
   (recv-queue (:owned-ids cursor))
-  (buffer-queue [(:local-id cursor) (:parent-id cursor)]))
+  (buffer-queue))

@@ -13,25 +13,27 @@
 (def app-state (atom {:editor {:local-id []
                                :parent-id []
                                :owned-ids []
-                               :input {:text nil}}}))
+                               :text ""}}))
 
 ;; Entrance point
 (defn ot-app [app owner]
   (reify
     om/IRender
     (render [_]
-            (dom/div #js {:className "container"}
-                     (dom/header nil
-                                 (dom/h1 #js {:className "page-title"} "Editor"))
-                     (om/build editor/editor-view (:editor app))))))
+      (dom/div #js {:className "container"}
+               (dom/header nil
+                           (dom/h1 #js {:className "page-title"} "Editor"))
+               (om/build editor/editor-view (:editor app)
+                         {:init-state {:text (get-in app [:editor :text])
+                                       :parent-id (get-in app [:editor :parent-id 0])}})))))
 
 (defn main [target state]
   (om/root ot-app state {:target target}))
 
 (defn setup! []
   (let-ajax [remote-doc {:url "/editor/documents/1"}]
-            (swap! app-state assoc-in [:editor :input :text] (:doc remote-doc))
-            (swap! app-state assoc-in [:editor :parent-id] [(:tx-id remote-doc)])
+            (swap! app-state assoc-in [:editor :text] (:doc remote-doc))
+            (swap! app-state assoc-in [:editor :parent-id] [(:version remote-doc)])
             (main (sel1 :#app) app-state)))
 
 (ready [] (setup!))
