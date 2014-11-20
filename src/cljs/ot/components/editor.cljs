@@ -89,25 +89,14 @@
         (go-loop []
           (let [{:keys [id ops]} (<! queue/inbound)
                 last-op (deref queue/last-client-op)]
-            (println "received:" ops)
-            (println "last-op  " last-op)
             (if (seq last-op)
                                         ; client in a buffer state
                                         ; need to convert incoming to match what server produces
               (let [[a'' c''] (transforms/transform last-op ops)
                     buf (:ops (deref queue/buffer))]
-                (println "==========================")
-                (println "a'' " a'')
-                (println "c'' " c'')
-                (println "buf " buf)
-                (println "--------------------------")
                 (if (seq buf)
                                         ; rebase client queue on server op
                   (let [[buf' ops'] (transforms/transform buf c'')]
-                    (println "buf'" buf')
-                    (println "ops'" ops')
-                    (println "==========================")
-
                     (swap! queue/buffer assoc :ops buf')
                     (update-text! owner ops'))
                                         ; nothing to rebase
@@ -117,7 +106,6 @@
                                         ; client hasn't performed actions, can apply cleanly
               (update-text! owner ops))
                                         ; acknowledge that we're on the latest parent
-            (println "updating parent-id to" id)
             (om/set-state! owner :parent-id id)
             (recur)))
         (go-loop []
