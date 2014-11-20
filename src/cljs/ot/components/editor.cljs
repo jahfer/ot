@@ -20,6 +20,8 @@
       (dom/textarea #js {:id "editor"
                          :value text}))))
 
+;; ---------------------------------------------------------------------
+
 (defn caret-position
   "gets or sets the current cursor position"
   ([owner]
@@ -41,6 +43,8 @@
     (if (zero? chars-remaining)
       op-list
       (conj op-list (operations/->Op :ret chars-remaining)))))
+
+;; ---------------------------------------------------------------------
 
 (def rejected-keys [8 37 38 39 40])
 
@@ -84,26 +88,37 @@
             (recur)))
         (go-loop []
           (let [{:keys [id ops]} (<! queue/inbound)
-                last-op (deref queue/last-client-op)
-                buf (deref queue/buffer)]
+                last-op (deref queue/last-client-op)]
+            (println "received:" ops)
+            (println "last-op  " last-op)
             (if (seq last-op)
                                         ; client in a buffer state
                                         ; need to convert incoming to match what server produces
-              (let [[a'' c''] (transforms/transform last-op ops)]
+              (let [[a'' c''] (transforms/transform last-op ops)
+                    buf (:ops (deref queue/buffer))]
+                (println "==========================")
+                (println "a'' " a'')
+                (println "c'' " c'')
+                (println "buf " buf)
+                (println "--------------------------")
                 (if (seq buf)
                                         ; rebase client queue on server op
                   (let [[buf' ops'] (transforms/transform buf c'')]
-                    (reset! queue/buffer buf')
-                    (update-text! owner ops')
-                    (println "received:" ops))
+                    (println "buf'" buf')
+                    (println "ops'" ops')
+                    (println "==========================")
+
+                    (swap! queue/buffer assoc :ops buf')
+                    (update-text! owner ops'))
                                         ; nothing to rebase
                   (update-text! owner c''))
                                         ; keep up to date with transformations
                 (reset! queue/last-client-op a''))
                                         ; client hasn't performed actions, can apply cleanly
-              (update-text! owner ops)
+              (update-text! owner ops))
                                         ; acknowledge that we're on the latest parent
-              (om/set-state! owner :parent-id id))
+            (println "updating parent-id to" id)
+            (om/set-state! owner :parent-id id)
             (recur)))
         (go-loop []
           (let [id (<! queue/sent-ids)]
@@ -128,65 +143,3 @@
                                   :onKeyDown #(handle-keydown % owner state)})))))
 
 
-;; ------------------------------------------------------------------------
-
-
-(defn update-contents! [operations cursor]
-  (let [text (get-in @cursor [:input :text])
-        new-text (documents/apply-ops text operations)]
-    (om/update! cursor [:input :text] new-text)
-    (om/update! cursor [:local-id] (util/unique-id))))
-
-(defn editor-view-old [cursor owner]
-  (reify
-    om/IInitState
-    (init-state [this]
-                {:comm (chan)})
-    om/IWillMount
-    (will-mount [this]
-      (queue/init! cursor)
-      (go-loop []
-        (let [external-queue queue/inbound
-              internal-queue (om/get-state owner :comm)]
-          (alt!
-           external-queue ([data]
-                             (let [operations (:ops data)
-                                   last-op (deref queue/last-client-op)
-                                   buf (deref queue/buffer)]
-                               (if (seq last-op)
-                                        ; client in a buffer state
-                                        ; need to convert incoming to match what server produces 
-                                 (let [[a'' c''] (transforms/transform last-op operations)]
-                                   (if (seq buf)
-                                        ; rebase client queue on server op
-                                     (let [[buf' ops'] (transforms/transform buf c'')]
-                                       (reset! queue/buffer buf')
-                                       (update-contents! ops' cursor)
-                                       (println "received: " operations))
-                                        ; nothing to rebase
-                                     (update-contents! c'' cursor))
-                                        ; keep up to date with transformations
-                                   (reset! queue/last-client-op a''))
-                                        ; client hasn't performed actions, can apply cleanly
-                                 (update-contents! operations cursor))
-                                        ; acknowledge that we're on the latest parent
-                               (println "Updating parent-id to" (:id data))
-                               (om/update! cursor [:parent-id] [(:id data)])))
-
-           internal-queue ([operations]
-                             (update-contents! operations cursor)
-                             (queue/send operations))
-
-           queue/sent-ids ([sent-id]
-                             (om/transact! cursor :owned-ids #(conj % sent-id)))
-           queue/recv-ids ([{:keys [local-id version]}]
-                             (println "Updating parent-id to" version)
-                             (om/update! cursor [:parent-id] [version])
-                             (om/transact! cursor :owned-ids #(remove #{local-id} %))))
-          (recur))))
-    om/IRenderState
-    (render-state [this {:keys [comm]}]
-      (dom/div nil
-               (om/build input/editor-input 
-                         (:input cursor)
-                         {:init-state {:comm comm}})))))

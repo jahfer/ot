@@ -45,6 +45,7 @@
               serialized (transit/write writer buf)]
           (println "[bq <~] Sending operations to the server")
           (put! sent-ids (:local-id buf))
+
           (ws/send serialized)))
       (recur))))
 
@@ -64,11 +65,12 @@
           (if (util/in? @owned-ids local-id)
             (do
               (println "  [...] Confirmed operation roundtrip success")
-              (put! recv-ids {:local-id local-id :server-id server-id})
               (when (seq (:ops @buffer))
+                (println "recv-queue updating parent-id")
                 (swap! buffer assoc :parent-id server-id))
+              (reset! last-client-op [])
               (put! confirmation response)
-              (reset! last-client-op []))
+              (put! recv-ids {:local-id local-id :server-id server-id}))
             (put! inbound data))))))
 
 (defn init!

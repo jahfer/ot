@@ -12,12 +12,12 @@
         val2 (:val (first ops2))]
     (cond
      (> val1 val2)
-       (let [ops1 (update-in ops1 [0 :val] #(- % val2))]
+       (let [ops1 (update-in (vec ops1) [0 :val] #(- % val2))]
          [ops1 (rest ops2) (retain val2)])
      (= val1 val2)
        [(rest ops1) (rest ops2) (retain val2)]
      :else
-       (let [ops2 (update-in ops2 [0 :val] #(- % val1))]
+       (let [ops2 (update-in (vec ops2) [0 :val] #(- % val1))]
          [(rest ops1) ops2 (retain val1)]))))
 
 (defn compress [ops]

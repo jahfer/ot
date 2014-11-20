@@ -29,10 +29,12 @@
   [ops1 (rest ops2) (->> ops2 first (conj out))])
 
 (defmethod compose-ops :insert-and-retain [ops1 ops2 out]
-  (let [ops2 (if (= 1 (get-in ops2 [0 :val]))
-               (rest ops2)
-               (update-in ops2 [0 :val] dec))]
-       [(rest ops1) ops2 (conj out (first ops1))]))
+  (let [ops1 (vec ops1)
+        ops2 (vec ops2)]
+    (let [ops2 (if (= 1 (get-in ops2 [0 :val]))
+                 (rest ops2)
+                 (update-in ops2 [0 :val] dec))]
+      [(rest ops1) ops2 (conj out (first ops1))])))
 
 (defmethod compose-ops :insert-and-delete [ops1 ops2 out]
   (let [val1 (:val (first ops1))
