@@ -1,8 +1,7 @@
 (ns ot.lib.test-util
   (:require [cemerick.cljs.test :as t]
-            [dommy.core :as dommy]
-            [om.core :as om :include-macros true])
-  (:use-macros [dommy.macros :only [node sel sel1]]))
+            [dommy.core :as dommy :refer-macros [sel1]]
+            [om.core :as om :include-macros true]))
 
 (defn container-div []
   (let [id (str "container-" (gensym))]

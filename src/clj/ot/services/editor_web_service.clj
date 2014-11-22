@@ -4,7 +4,10 @@
             [ot.core.editor-web-core :as core]
             [puppetlabs.trapperkeeper.core :as tk]))
 
+(defprotocol EditorWebService)
+
 (tk/defservice editor-web-service
+  EditorWebService
   [[:ConfigService get-in-config]
    [:WebsocketService add-ring-handler]]
   (init [this context]
@@ -13,7 +16,10 @@
               context-app (compojure/context url-prefix [] core/editor-routes)]
           (add-ring-handler context-app)
           (add-ring-handler core/app-routes)
-          (assoc context :url-prefix url-prefix)))
+          (assoc context
+            :url-prefix url-prefix
+            :root-document "Hai"
+            :doc-version 0)))
   (start [this context]
          (log/info "Starting editor webservice")
          (core/handle-connections)

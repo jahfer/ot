@@ -2,7 +2,6 @@
   (:require [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]
             [cljs.core.async :refer [put! chan <!]]
-            [cljs-hash.goog :as gh]
             [ot.components.editor-input :as input]
             [ot.lib.queue :as queue]
             [ot.lib.util :as util]

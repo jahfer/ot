@@ -1,13 +1,11 @@
 (ns ot.core.editor-web-core
-  (:use [compojure.core :only [defroutes GET]]
-        org.httpkit.server)
+  (:use [compojure.core :only [defroutes GET]])
   (:import [java.io ByteArrayInputStream]
            [java.io ByteArrayOutputStream])
   (:require [clojure.tools.logging :as log]
-            [clojure.edn :as edn]
+            [org.httpkit.server :as httpkit]
             [compojure.route :as route]
             [cognitect.transit :as transit]
-            [digest]
             [ot.templating.views :as views]
             [ot.transforms :refer :all]
             [ot.documents :as documents]
@@ -41,12 +39,12 @@
   (GET "/iframe" [] (views/iframed-test)))
 
 (defn async-handler [req]
-  (with-channel req ch
+  (httpkit/with-channel req ch
     (swap! clients assoc ch true)
     (log/info "New connection:" ch)
-    (on-receive ch (fn [data]
+    (httpkit/on-receive ch (fn [data]
                      (put! input data)))
-    (on-close ch (fn [status]
+    (httpkit/on-close ch (fn [status]
                    (swap! clients dissoc ch)
                    (log/info "closed channel:" status)))))
 
@@ -114,11 +112,11 @@
 
 (defn shutdown []
   (doseq [client @clients]
-    (close (key client))
+    (httpkit/close (key client))
     (swap! clients dissoc client))
   (log/info "Finished closing of websocket clients"))
 
 (defn broadcast [msg]
   (Thread/sleep 2000)
   (doseq [client @clients]
-    (send! (key client) msg)))
+    (httpkit/send! (key client) msg)))

@@ -1,7 +1,6 @@
 (ns ot.core.websocket-core
   (:use [org.httpkit.server]
-        [ring.middleware.params]
-        [ring.middleware.edn])
+        [ring.middleware.params])
   (:require [clojure.tools.logging :as log]
             [compojure.core :as compojure]))
 
@@ -9,8 +8,7 @@
 
 (defn params-thru-middleware []
   (-> @ring-handlers
-      wrap-params
-      wrap-edn-params))
+      wrap-params))
 
 (defn start-server [port]
   (run-server (params-thru-middleware) {:port port}))

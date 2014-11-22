@@ -4,8 +4,7 @@
             [cljs.core.async :refer [put! chan <!]]
             [ot.components.editor :as editor]
             [ot.lib.repl :as repl])
-  (:use-macros [dommy.macros :only [node sel sel1]]
-               [jayq.macros :only [ready let-ajax]]))
+  (:use-macros [jayq.macros :only [ready let-ajax]]))
 
 (enable-console-print!)
 
@@ -34,6 +33,6 @@
   (let-ajax [remote-doc {:url "/editor/documents/1"}]
             (swap! app-state assoc-in [:editor :text] (:doc remote-doc))
             (swap! app-state assoc-in [:editor :parent-id] [(:version remote-doc)])
-            (main (sel1 :#app) app-state)))
+            (main (.getElementById js/document "app") app-state)))
 
 (ready [] (setup!))

@@ -1,6 +1,3 @@
-(def tk-version "0.5.1")
-(def ks-version "0.5.3")
-
 (defproject ot "0.1.0"
   :description "Implementation of Operational Transform in Clojure"
   :url "https://github.com/jahfer/ot"
@@ -8,7 +5,7 @@
             :url "http://www.eclipse.org/legal/epl-v10.html"}
 
   :dependencies [[org.clojure/clojure "1.6.0"]
-                 [org.clojure/core.async "0.1.267.0-0d7780-alpha"]
+                 [org.clojure/core.async "0.1.346.0-17112a-alpha"]
                  [org.clojure/core.match "0.2.1"]]
 
   :main puppetlabs.trapperkeeper.main
@@ -17,37 +14,29 @@
 
   :ring {:handler ot.handler/app}
 
-  :profiles {:clj {:dependencies [[javax.servlet/servlet-api "2.5"]
-                                  [ring-mock "0.1.5"]
-                                  [puppetlabs/trapperkeeper ~tk-version :classifier "test" :scope "test"]
-                                  [puppetlabs/kitchensink ~ks-version :classifier "test" :scope "test"]
-                                  [ring-mock "0.1.5"]
-                                  [log4j/log4j "1.2.16"]
+  :profiles {:default [:base :system :user :provided :clj]
+
+             :clj {:dependencies [[ring/ring-core "1.3.1"]
+                                  [compojure "1.2.1"]
+                                  [http-kit "2.1.18"]
                                   [hiccup "1.0.5"]
-                                  [org.clojure/java.jdbc "0.2.3"]
-                                  [com.h2database/h2 "1.3.170"]
-                                  [fogus/ring-edn "0.2.0"]
-                                  [ring/ring-devel "1.1.8"]
-                                  [ring/ring-core "1.1.8"]
-                                  [compojure "1.1.6"]
-                                  [http-kit "2.1.16"]
-                                  [digest "1.4.4"]
-                                  [com.cognitect/transit-clj "0.8.247"]
+                                  [com.cognitect/transit-clj "0.8.259"]
                                   [org.clojure/tools.nrepl "0.2.3"]
-                                  [puppetlabs/trapperkeeper ~tk-version]
+                                  [puppetlabs/trapperkeeper "1.0.1"]
+                                  [puppetlabs/trapperkeeper "1.0.1" :classifier "test" :scope "test"]
+                                  [javax.servlet/servlet-api "2.5"]
                                   [org.clojure/tools.logging "0.2.6"]
                                   [org.clojure/tools.namespace "0.2.4"]]
                    :source-paths ["target/generated/src/clj" "src/clj"]
-                   :test-paths ["target/generated/test/clj" "test/clj"]
+                   :test-paths   ["target/generated/test/clj" "test/clj"]
                    :resource-paths ["resources" "target/generated/src/cljs"]}
 
-             :cljs {:dependencies [[org.clojure/clojurescript "0.0-2311"]
+             :cljs {:dependencies [[org.clojure/clojurescript "0.0-2371"]
                                    [jayq "2.5.2"]
-                                   [prismatic/dommy "0.1.3"]
+                                   [prismatic/dommy "1.0.0"]
                                    [om "0.6.4"]
                                    [com.facebook/react "0.8.0.1"]
-                                   [com.cognitect/transit-cljs "0.8.182"]
-                                   [cljs-hash "0.0.2"]]
+                                   [com.cognitect/transit-cljs "0.8.192"]]
                     :plugins [[lein-cljsbuild "1.0.3"]
                               [com.cemerick/clojurescript.test "0.3.1"]]
                     :cljsbuild {:builds {:dev {:source-paths ["src/cljs"
