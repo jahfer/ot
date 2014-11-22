@@ -126,6 +126,7 @@
                                   :id "editor"
                                   :ref "editor"
                                   :value (:text state)
+                                  :onClick #(om/set-state! owner :caret (caret-position owner))
                                   :onKeyPress #(handle-keypress % owner state)
                                   :onKeyDown #(handle-keydown % owner state)})))))
 
