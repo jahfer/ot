@@ -98,6 +98,8 @@
           cleaned-data (rebase-incoming data @history)]
       (persist! cleaned-data)
       (broadcast (write-message cleaned-data))
+      
+      (print-events @history)
       (recur))))
 
 (defn shutdown []

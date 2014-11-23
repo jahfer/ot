@@ -1,6 +1,6 @@
 (ns user
   (:require [clojure.pprint :refer (pprint)]
-            [ot.services.editor-web-service :refer [editor-web-service]]
+            [ot.services.operational-transform-service :refer [operational-transform-service]]
             [ot.services.websocket-service :refer [websocket-service]]
             [puppetlabs.trapperkeeper.core :as tk]
             [puppetlabs.trapperkeeper.app :as tkapp]
@@ -11,7 +11,7 @@
 (defn init []
   (alter-var-root #'system
                   (fn [_] (tk/build-app
-                           [editor-web-service
+                           [operational-transform-service
                             websocket-service]
                            {:global
                               {:logging-config "./resources/logback-dev.xml"}
