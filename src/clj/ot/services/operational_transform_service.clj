@@ -1,27 +1,27 @@
-(ns ot.services.editor-web-service
+(ns ot.services.operational-transform-service
   (:require [clojure.tools.logging :as log]
             [compojure.core :as compojure]
-            [ot.core.editor-web-core :as core]
+            [ot.core.operational-transform-core :as core]
             [puppetlabs.trapperkeeper.core :as tk]))
 
-(defprotocol EditorWebService)
+(defprotocol OperationalTransformService)
 
-(tk/defservice editor-web-service
-  EditorWebService
+(tk/defservice operational-transform-service
+  OperationalTransformService
   [[:ConfigService get-in-config]
    [:WebsocketService add-ring-handler]]
   (init [this context]
-        (log/info "Initializing editor webservice")
+        (log/info "Initializing operational transform service")
         (let [url-prefix (get-in-config [:editor-web :url-prefix])
               context-app (compojure/context url-prefix [] core/editor-routes)]
           (add-ring-handler context-app)
           (add-ring-handler core/app-routes)
           (assoc context
             :url-prefix url-prefix
-            :root-document "Hai"
-            :doc-version 0)))
+            :document {:body "Hai"
+                       :version 0})))
   (start [this context]
-         (log/info "Starting editor webservice")
+         (log/info "Starting operational transform service")
          (core/handle-connections)
          context)
   (stop [this context]

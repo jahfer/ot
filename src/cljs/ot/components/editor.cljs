@@ -52,7 +52,7 @@
 
 (defn handle-keypress [e owner {:keys [comm]}]
   (when (not (util/in? rejected-keys (.-keyCode e)))
-    (om/set-state! owner :caret (caret-position owner)) ; race condition?
+    (om/set-state! owner :caret (caret-position owner))
     (let [key (util/keyFromCode (.-which e))
           op (gen-insert-op key (om/get-state owner :caret) (om/get-state owner :text))]
       (om/update-state! owner [:caret] inc)

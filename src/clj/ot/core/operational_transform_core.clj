@@ -1,4 +1,4 @@
-(ns ot.core.editor-web-core
+(ns ot.core.operational-transform-core
   (:use [compojure.core :only [defroutes GET]])
   (:import [java.io ByteArrayInputStream]
            [java.io ByteArrayOutputStream])
@@ -12,7 +12,7 @@
             [ot.composers :as composers]
             [ot.operations :as operations]
             [ot.transit-handlers :as transit-handlers]
-            [clojure.core.async :refer [go put! <! chan]]))
+            [clojure.core.async :refer [go-loop put! <! chan]]))
 
 (declare async-handler)
 (declare broadcast)
@@ -23,6 +23,7 @@
 (def clients (atom {}))
 (def history (atom (sorted-set-by (fn [a b]
                                     (< (:id a) (:id b))))))
+
 (defroutes app-routes
   (route/resources "/")
   (route/not-found "Not found"))
@@ -48,8 +49,8 @@
                    (swap! clients dissoc ch)
                    (log/info "closed channel:" status)))))
 
-(defn operations-since-id [id]
-  (rest (drop-while #(not (= (:id %) id)) @history)))
+(defn operations-since-id [id log]
+  (map :ops (rest (drop-while #(not (= (:id %) id)) log))))
 
 (defn server-parented? [received-id]
   (some #(= received-id %) (map :id @history)))
@@ -66,49 +67,38 @@
     (transit/write writer msg)
     (.toString out)))
 
+(defn print-events [coll]
+  (clojure.pprint/print-table [:id :parent-id :local-id :ops]
+                              (map #(update-in % [:ops] operations/print-ops) coll)))
+
+(defn rebase-incoming [{:keys [parent-id ops] :as data} new-base]
+  (if (or (server-parented? parent-id)
+          (not (seq new-base)))
+    (let [data-with-id (assoc data :id (swap! doc-version inc)) ; dependency :(
+          ops-since-id (operations-since-id parent-id new-base)]
+      (if (seq ops-since-id)
+        (let [server-ops (reduce composers/compose (map :ops ops-since-id))]
+          (update-in data-with-id [:ops] #(first (transform % server-ops))))
+        (do
+          data-with-id)))
+    (do
+      (log/error "Rejected operation" parent-id  "Not parented on known history")
+      (log/error new-base))))
+
+(defn persist! [data]
+  (update-root-doc! (:ops data))
+  (append-to-history! data))
+
 (defn handle-connections []
-  (go
-    (while true
-      (let [raw-data (<! input)
-            in (ByteArrayInputStream. (.getBytes raw-data))
-            reader (transit/reader in :json {:handlers transit-handlers/read-handlers})
-            {:keys [parent-id ops] :as data} (transit/read reader)]
-        (println)
-        (println (clojure.string/join (repeatedly 120 (fn [] "="))))
-        (log/info "Received:")
-        (clojure.pprint/print-table [:parent-id :local-id :ops]
-                                    [(update-in data [:ops] operations/print-ops)])
-        (println)
-        (if (or (server-parented? parent-id) (not (seq @history)))
-          (let [ops-since-id (operations-since-id parent-id)
-                data (assoc data :id (swap! doc-version inc))]
-            (log/debug "ID assigned" (:id data))
-            (if (seq ops-since-id)
-              (let [_ (log/debug "Rebasing incoming operations")
-                    server-ops (reduce composers/compose (map :ops ops-since-id))
-                    _ (log/debug "Rebasing on tx IDs" (map :id ops-since-id))
-                    evt (update-in data [:ops] #(first (transform % server-ops)))]
-                (update-root-doc! (:ops evt))
-                (append-to-history! evt)
-                (broadcast (write-message evt))
-                (log/info "Applied, stored and broadcasted:")
-                (clojure.pprint/print-table [:id :parent-id :local-id :ops]
-                                            [(update-in evt [:ops] operations/print-ops)]))
-              (do
-                (log/debug "Clean merge")
-                (append-to-history! data)
-                (update-root-doc! ops)
-                (broadcast (write-message data))
-                (log/info "Applied, stored and broadcasted:")
-                (clojure.pprint/print-table [:id :parent-id :local-id :ops]
-                                            [(update-in data [:ops] operations/print-ops)]))))
-          (do
-            (log/error "Rejected operation" parent-id  "Not parented on server's history")
-            (log/error @history)))
-        (println)
-        (log/info "Current history state:")
-        (clojure.pprint/print-table [:id :parent-id :ops]
-                                    (map #(update-in % [:ops] operations/print-ops) @history))))))
+  (go-loop []
+    (let [raw-data (<! input)
+          in (ByteArrayInputStream. (.getBytes raw-data))
+          reader (transit/reader in :json {:handlers transit-handlers/read-handlers})
+          data (transit/read reader)
+          cleaned-data (rebase-incoming data @history)]
+      (persist! cleaned-data)
+      (broadcast (write-message cleaned-data))
+      (recur))))
 
 (defn shutdown []
   (doseq [client @clients]
@@ -117,6 +107,6 @@
   (log/info "Finished closing of websocket clients"))
 
 (defn broadcast [msg]
-  (Thread/sleep 2000)
+  (Thread/sleep 1000)
   (doseq [client @clients]
     (httpkit/send! (key client) msg)))

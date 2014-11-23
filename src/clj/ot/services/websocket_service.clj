@@ -20,6 +20,5 @@
          context)
   (stop [this context]
         (let [server (:server context)]
-          (@server)
           (reset! server nil))
         context))
