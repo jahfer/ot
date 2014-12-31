@@ -10,7 +10,7 @@
 
   :main puppetlabs.trapperkeeper.main
 
-  :plugins [[com.keminglabs/cljx "0.4.0"]]
+  :plugins [[com.keminglabs/cljx "0.5.0"]]
 
   :ring {:handler ot.handler/app}
 
@@ -20,6 +20,7 @@
                                   [compojure "1.2.1"]
                                   [http-kit "2.1.18"]
                                   [hiccup "1.0.5"]
+                                  [joplin.core "0.2.4"]
                                   [com.cognitect/transit-clj "0.8.259"]
                                   [org.clojure/tools.nrepl "0.2.3"]
                                   [puppetlabs/trapperkeeper "1.0.1"]
@@ -27,9 +28,16 @@
                                   [javax.servlet/servlet-api "2.5"]
                                   [org.clojure/tools.logging "0.2.6"]
                                   [org.clojure/tools.namespace "0.2.4"]]
-                   :source-paths ["target/generated/src/clj" "src/clj"]
+                   :plugins [[joplin.lein "0.2.4"]]
+                   :source-paths ["target/generated/src/clj" "src/clj" "db"]
                    :test-paths   ["target/generated/test/clj" "test/clj"]
-                   :resource-paths ["resources" "target/generated/src/cljs"]}
+                   :resource-paths ["resources" "target/generated/src/cljs"]
+
+                   :joplin {:migrators {:cass-mig "db/migrators/cass"}
+                            :databases {:cass-dev {:type :cass
+                                                   :hosts ["localhost"]
+                                                   :keyspace "ot_dev"}}
+                            :environments {:dev [{:db :cass-dev :migrator :cass-mig}]}}}
 
              :cljs {:dependencies [[org.clojure/clojurescript "0.0-2371"]
                                    [jayq "2.5.2"]
@@ -61,8 +69,6 @@
             "clj-clean-test" ["do" "clean," "clj-test"]
             "cljs-clean-test" ["do" "clean," "cljs-test"]
             "all-tests" ["do" "clean," "clj-test," "cljs-test"]}
-
-;  :hooks [cljx.hooks]
 
   :repl-options {:init-ns user}
 
