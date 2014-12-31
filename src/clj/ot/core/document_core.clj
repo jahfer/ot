@@ -1,6 +1,6 @@
 (ns ot.core.document-core
   (:require [clojure.tools.logging :as log]
-            [ot.transforms :refer :all]
+            [ot.transforms :as transforms]
             [ot.documents :as documents]
             [ot.composers :as composers]
             [ot.operations :as operations]))
@@ -34,8 +34,8 @@
           (not (seq new-base)))
     (let [ops-since-id (operations-since-id parent-id new-base)]
       (if (seq ops-since-id)
-        (let [server-ops (reduce composers/compose (map :ops ops-since-id))]
-          (update-in data [:ops] #(first (transform % server-ops))))
+        (let [server-ops (reduce composers/compose ops-since-id)]
+          (update-in data [:ops] #(first (transforms/transform % server-ops))))
         data))
     (do
       (log/error "Rejected operation" parent-id  "Not parented on known history")

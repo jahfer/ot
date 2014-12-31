@@ -36,6 +36,12 @@
   (GET "/ws" [] async-handler)
   (GET "/iframe" [] (views/iframed-test)))
 
+(defn- write-message [msg]
+  (let [out (ByteArrayOutputStream. 4096)
+        writer (transit/writer out :json {:handlers transit-handlers/write-handlers})]
+    (transit/write writer msg)
+    (.toString out)))
+
 (defn async-handler [req]
   (httpkit/with-channel req ch
     (swap! clients assoc ch true)
@@ -45,12 +51,6 @@
     (httpkit/on-close ch (fn [status]
                    (swap! clients dissoc ch)
                    (log/info "closed channel:" status)))))
-
-(defn write-message [msg]
-  (let [out (ByteArrayOutputStream. 4096)
-        writer (transit/writer out :json {:handlers transit-handlers/write-handlers})]
-    (transit/write writer msg)
-    (.toString out)))
 
 (defn handle-connections []
   (go-loop []
