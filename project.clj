@@ -21,8 +21,10 @@
                                   [http-kit "2.1.18"]
                                   [hiccup "1.0.5"]
                                   [joplin.core "0.2.4"]
+                                  [clojurewerkz/cassaforte "2.0.0"]
                                   [com.cognitect/transit-clj "0.8.259"]
                                   [org.clojure/tools.nrepl "0.2.3"]
+                                  [org.clojure/tools.cli "0.3.1"]
                                   [puppetlabs/trapperkeeper "1.0.1"]
                                   [puppetlabs/trapperkeeper "1.0.1" :classifier "test" :scope "test"]
                                   [javax.servlet/servlet-api "2.5"]
@@ -61,8 +63,8 @@
                                                               "resources/public/js/vendor/jquery-1.10.2.min.js"
                                                               "resources/public/js/out/main.js"]}}}}
 
-  :aliases {"server" ["do" "cljx," "with-profile" "clj" "trampoline" "run" "--bootstrap-config" "resources/bootstrap.cfg" "--config" "resources/config.conf"]
-            "client" ["do" "cljx," "with-profile" "cljs" "cljsbuild" "auto" "dev"]
+  :aliases {"server" ["trampoline" "run" "--bootstrap-config" "resources/bootstrap.cfg" "--config" "resources/config.conf"]
+            "client" ["with-profile" "cljs" "cljsbuild" "auto" "dev"]
             "cljs-repl" ["with-profile" "cljs" "trampoline" "cljsbuild" "repl-listen"]
             "clj-test" ["do" "cljx," "with-profile" "clj" "test"]
             "cljs-test" ["do" "cljx," "with-profile" "cljs" "cljsbuild" "test"]
