@@ -1,18 +1,19 @@
-(ns ot.services.operational-transform-service
+(ns ot.services.web-service
   (:require [clojure.tools.logging :as log]
             [compojure.core :as compojure]
-            [ot.core.operational-transform-core :as core]
+            [ot.core.web-core :as core]
             [puppetlabs.trapperkeeper.core :as tk]))
 
-(defprotocol OperationalTransformService)
+(defprotocol WebService)
 
-(tk/defservice operational-transform-service
-  OperationalTransformService
+(tk/defservice web-service
+  WebService
   [[:ConfigService get-in-config]
-   [:WebsocketService add-ring-handler]]
+   [:WebsocketService add-ring-handler]
+   [:DocumentStorageService insert select]]
   (init [this context]
-        (log/info "Initializing operational transform service")
-        (let [url-prefix (get-in-config [:editor-web :url-prefix])
+        (log/info "Initializing WebService")
+        (let [url-prefix (get-in-config [:web :url-prefix])
               context-app (compojure/context url-prefix [] core/editor-routes)]
           (add-ring-handler context-app)
           (add-ring-handler core/app-routes)
@@ -21,7 +22,7 @@
             :document {:body "Hai"
                        :version 0})))
   (start [this context]
-         (log/info "Starting operational transform service")
+         (log/info "Starting WebService")
          (core/handle-connections)
          context)
   (stop [this context]

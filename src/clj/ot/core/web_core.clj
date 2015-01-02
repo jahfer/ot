@@ -1,4 +1,4 @@
-(ns ot.core.operational-transform-core
+(ns ot.core.web-core
   (:use [compojure.core :only [defroutes GET]])
   (:import [java.io ByteArrayInputStream]
            [java.io ByteArrayOutputStream])
@@ -11,7 +11,7 @@
             [ot.documents :as documents]
             [ot.composers :as composers]
             [ot.operations :as operations]
-            [ot.core.document-core :as document-core]
+            [ot.lib.document-manager :as document-manager]
             [ot.transit-handlers :as transit-handlers]
             [clojure.core.async :refer [go-loop put! <! chan]]))
 
@@ -31,8 +31,8 @@
                              {:status 200
                               :headers {"Content-Type" "application/edn"}
                               :body (pr-str {:id      (:id params)
-                                             :doc     (deref document-core/root-document)
-                                             :version (deref document-core/doc-version)})}))
+                                             :doc     (deref document-manager/root-document)
+                                             :version (deref document-manager/doc-version)})}))
   (GET "/ws" [] async-handler)
   (GET "/iframe" [] (views/iframed-test)))
 
@@ -58,7 +58,7 @@
           in (ByteArrayInputStream. (.getBytes raw-data))
           reader (transit/reader in :json {:handlers transit-handlers/read-handlers})
           data (transit/read reader)
-          cleaned-data (document-core/submit-request data)]
+          cleaned-data (document-manager/submit-request data)]
       (if cleaned-data
         (broadcast (write-message cleaned-data))
         (log/error "Failed to process request of data"))      

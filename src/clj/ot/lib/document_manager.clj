@@ -1,4 +1,4 @@
-(ns ot.core.document-core
+(ns ot.lib.document-manager
   (:require [clojure.tools.logging :as log]
             [clojurewerkz.cassaforte.client :as cc]
             [clojurewerkz.cassaforte.cql :as cql]
