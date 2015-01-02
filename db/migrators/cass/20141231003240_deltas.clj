@@ -6,12 +6,10 @@
 (defn up [db]
   (let [conn (get-connection (:hosts db) (:keyspace db))]
     (cql/create-table conn "deltas"
-                      (cq/column-definitions {:document_id :uuid
-                                              :id :int
-                                              :parent_id :int
-                                              :local_id :varchar
-                                              :ops :varchar
-                                              :primary-key [:document_id :id]}))))
+                      (cq/column-definitions {:documentid :uuid
+                                              :deltaid :int
+                                              :operations :text
+                                              :primary-key [:documentid :deltaid]}))))
 
 (defn down [db]
   (let [conn (get-connection (:hosts db) (:keyspace db))]
