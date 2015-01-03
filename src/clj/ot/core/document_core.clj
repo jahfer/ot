@@ -1,7 +1,8 @@
-(ns ot.lib.document-manager
+(ns ot.core.document-core
   (:require [clojure.tools.logging :as log]
             [clojurewerkz.cassaforte.client :as cc]
             [clojurewerkz.cassaforte.cql :as cql]
+            [clojurewerkz.cassaforte.query :refer :all]
             [ot.transforms :as transforms]
             [ot.documents :as documents]
             [ot.composers :as composers]
@@ -24,19 +25,15 @@
 (defn- update-root-doc! [ops]
   (swap! root-document documents/apply-ops ops))
 
-(defn- save-to-db! [{:keys [id ops]}]
-  (let [conn (cc/connect ["localhost"])]
-    (cql/use-keyspace conn "ot_dev")
-    (cql/insert conn "deltas" {:documentid #uuid "70ef8740-9237-11e4-aec4-054abea3cfa4"
-                               :deltaid id
-                               :operations (pr-str ops)})))
-
 (defn- append-to-history! [evt]
-  (save-to-db! evt)
   (swap! history conj evt))
 
-(defn- persist! [data]
-  (update-root-doc! (:ops data))
+(defn- persist! [document-store {:keys [id ops] :as data}]
+  ((:insert document-store) document-store "deltas"
+   {:documentid #uuid "70ef8740-9237-11e4-aec4-054abea3cfa4"
+    :deltaid id
+    :operations (pr-str ops)})
+  (update-root-doc! ops)
   (append-to-history! data))
 
 (defn- rebase-incoming [{:keys [parent-id ops] :as data} new-base]
@@ -55,10 +52,22 @@
   (clojure.pprint/print-table [:id :parent-id :local-id :ops]
                               (map #(update-in % [:ops] operations/print-ops) coll)))
 
-(defn submit-request [opdata]
+(defn submit-request [document-store opdata]
   (let [cleaned-data (-> opdata
                          (rebase-incoming @history)
                          (tag-operation))]
-    (persist! cleaned-data)
+    (persist! document-store cleaned-data)
     (print-events @history)
     cleaned-data))
+
+(defn request-document [document-store documentid]
+  (let [select-fn (:select document-store)
+        deltas (select-fn "deltas"
+                          [(columns :operations)
+                           (where [[= :documentid documentid]])])
+        hash-deltas (map #(clojure.edn/read-string
+                           {:readers {'ot.operations.Op ot.operations/map->Op}}
+                           (:operations %))
+                         deltas)
+        composed-ops (reduce composers/compose hash-deltas)]
+    (documents/apply-ops "" composed-ops)))

@@ -1,6 +1,7 @@
 (ns user
   (:require [clojure.pprint :refer (pprint)]
             [ot.services.web-service :refer [web-service]]
+            [ot.services.document-service :refer [document-service]]
             [ot.services.websocket-service :refer [websocket-service]]
             [ot.services.document-storage-service :refer [cassandra-service]]
             [puppetlabs.trapperkeeper.core :as tk]
@@ -13,6 +14,7 @@
   (alter-var-root #'system
                   (fn [_] (tk/build-app
                            [web-service
+                            document-service
                             websocket-service
                             cassandra-service]
                            {:global

@@ -7,7 +7,7 @@
 
 (defprotocol DocumentStorageService
   (insert [this table data])
-  (select [this table & conds]))
+  (select [this table conds]))
 
 (tk/defservice cassandra-service
   DocumentStorageService
@@ -26,6 +26,6 @@
   (insert [this table data]
           (let [context (service-context this)]
             (cql/insert (:db context) table data)))
-  (select [this table & conds]
+  (select [this table conds]
           (let [context (service-context this)]
             (apply cql/select (:db context) table conds))))

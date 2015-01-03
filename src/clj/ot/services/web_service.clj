@@ -10,20 +10,18 @@
   WebService
   [[:ConfigService get-in-config]
    [:WebsocketService add-ring-handler]
-   [:DocumentStorageService insert select]]
+   [:DocumentService submit-request request-document]]
   (init [this context]
         (log/info "Initializing WebService")
         (let [url-prefix (get-in-config [:web :url-prefix])
               context-app (compojure/context url-prefix [] core/editor-routes)]
           (add-ring-handler context-app)
           (add-ring-handler core/app-routes)
-          (assoc context
-            :url-prefix url-prefix
-            :document {:body "Hai"
-                       :version 0})))
+          (log/debug (request-document #uuid "70ef8740-9237-11e4-aec4-054abea3cfa4"))
+          context))
   (start [this context]
          (log/info "Starting WebService")
-         (core/handle-connections)
+         (core/handle-connections submit-request)
          context)
   (stop [this context]
         (core/shutdown)

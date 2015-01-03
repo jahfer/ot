@@ -7,16 +7,12 @@
             [compojure.route :as route]
             [cognitect.transit :as transit]
             [ot.templating.views :as views]
-            [ot.transforms :refer :all]
-            [ot.documents :as documents]
-            [ot.composers :as composers]
-            [ot.operations :as operations]
-            [ot.lib.document-manager :as document-manager]
             [ot.transit-handlers :as transit-handlers]
             [clojure.core.async :refer [go-loop put! <! chan]]))
 
 (declare async-handler)
 (declare broadcast)
+(declare fetch-document)
 
 (def input (chan))
 (def clients (atom {}))
@@ -27,12 +23,7 @@
 
 (defroutes editor-routes
   (GET "/" [] (views/home-page))
-  (GET "/documents/:id" [] (fn [{params :params}]
-                             {:status 200
-                              :headers {"Content-Type" "application/edn"}
-                              :body (pr-str {:id      (:id params)
-                                             :doc     (deref document-manager/root-document)
-                                             :version (deref document-manager/doc-version)})}))
+  (GET "/documents/:id" [id] (fetch-document id))
   (GET "/ws" [] async-handler)
   (GET "/iframe" [] (views/iframed-test)))
 
@@ -41,6 +32,11 @@
         writer (transit/writer out :json {:handlers transit-handlers/write-handlers})]
     (transit/write writer msg)
     (.toString out)))
+
+(defn fetch-document [id]
+  {:status 200
+   :headers {"Content-Type" "application/edn"}
+   :body (pr-str {:id id :doc "" :version 1})})
 
 (defn async-handler [req]
   (httpkit/with-channel req ch
@@ -52,16 +48,16 @@
                    (swap! clients dissoc ch)
                    (log/info "closed channel:" status)))))
 
-(defn handle-connections []
+(defn handle-connections [submit-request-fn]
   (go-loop []
     (let [raw-data (<! input)
           in (ByteArrayInputStream. (.getBytes raw-data))
           reader (transit/reader in :json {:handlers transit-handlers/read-handlers})
           data (transit/read reader)
-          cleaned-data (document-manager/submit-request data)]
+          cleaned-data (submit-request-fn data)]
       (if cleaned-data
         (broadcast (write-message cleaned-data))
-        (log/error "Failed to process request of data"))      
+        (log/error "Failed to process request of data"))  
       (recur))))
 
 (defn shutdown []
