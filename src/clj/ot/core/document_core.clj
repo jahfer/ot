@@ -29,7 +29,7 @@
   (swap! history conj evt))
 
 (defn- persist! [document-store {:keys [id ops] :as data}]
-  ((:insert document-store) document-store "deltas"
+  ((:insert document-store) "deltas"
    {:documentid #uuid "70ef8740-9237-11e4-aec4-054abea3cfa4"
     :deltaid id
     :operations (pr-str ops)})
