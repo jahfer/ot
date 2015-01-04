@@ -30,7 +30,7 @@
   (om/root ot-app state {:target target}))
 
 (defn setup! []
-  (let-ajax [remote-doc {:url "/editor/documents/1"}]
+  (let-ajax [remote-doc {:url "/editor/documents/70ef8740-9237-11e4-aec4-054abea3cfa4.json"}]
             (swap! app-state assoc-in [:editor :text] (:doc remote-doc))
             (swap! app-state assoc-in [:editor :parent-id] [(:version remote-doc)])
             (main (.getElementById js/document "app") app-state)))

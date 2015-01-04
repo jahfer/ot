@@ -1,4 +1,5 @@
 (ns ot.services.web-service
+  (:use [compojure.core :only [GET]])
   (:require [clojure.tools.logging :as log]
             [compojure.core :as compojure]
             [ot.core.web-core :as core]
@@ -15,9 +16,13 @@
         (log/info "Initializing WebService")
         (let [url-prefix (get-in-config [:web :url-prefix])
               context-app (compojure/context url-prefix [] core/editor-routes)]
+          (add-ring-handler (compojure/routes
+                             (GET "/editor/documents/:id.json" [id]
+                                  (let [uuid (java.util.UUID/fromString id)
+                                        text (request-document uuid)]
+                                    (core/respond-with-doc id text 1)))))
           (add-ring-handler context-app)
           (add-ring-handler core/app-routes)
-          (log/debug (request-document #uuid "70ef8740-9237-11e4-aec4-054abea3cfa4"))
           context))
   (start [this context]
          (log/info "Starting WebService")

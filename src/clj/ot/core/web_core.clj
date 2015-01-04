@@ -5,6 +5,7 @@
   (:require [clojure.tools.logging :as log]
             [org.httpkit.server :as httpkit]
             [compojure.route :as route]
+            [ring.util.response :as res]
             [cognitect.transit :as transit]
             [ot.templating.views :as views]
             [ot.transit-handlers :as transit-handlers]
@@ -22,10 +23,10 @@
   (route/not-found "Not found"))
 
 (defroutes editor-routes
-  (GET "/" [] (views/home-page))
-  (GET "/documents/:id" [id] (fetch-document id))
+  (GET "/" [] (views/document-page))
   (GET "/ws" [] async-handler)
-  (GET "/iframe" [] (views/iframed-test)))
+  (GET "/iframe" [] (views/iframed-test))
+  (GET "/documents/:id" [id] (views/document-page)))
 
 (defn- write-message [msg]
   (let [out (ByteArrayOutputStream. 4096)
@@ -33,10 +34,11 @@
     (transit/write writer msg)
     (.toString out)))
 
-(defn fetch-document [id]
-  {:status 200
-   :headers {"Content-Type" "application/edn"}
-   :body (pr-str {:id id :doc "" :version 1})})
+(defn respond-with-doc [id text version]
+  (-> (res/response (pr-str {:id id
+                             :doc text
+                             :version version}))
+      (res/content-type "application/edn")))
 
 (defn async-handler [req]
   (httpkit/with-channel req ch

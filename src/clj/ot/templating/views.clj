@@ -16,9 +16,9 @@
    [:a {:href "/edit"} "Edit"]
    " ]"])
 
-(defn home-page []
+(defn document-page []
   (hic-p/html5
-   (gen-page-head "OT Editor")
+   (gen-page-head (str "OT Editor"))
    [:body
     [:div#app]
     (hic-p/include-js "/js/vendor/react-0.8.0.js")
