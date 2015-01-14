@@ -36,6 +36,9 @@
                  (update-in ops2 [0 :val] dec))]
       [(rest ops1) ops2 (conj out (first ops1))])))
 
+
+                                        ; wtf this doesn't make sense
+                                        ; how do you compare an insert with a delete?!
 (defmethod compose-ops :insert-and-delete [ops1 ops2 out]
   (let [val1 (:val (first ops1))
         val2 (:val (first ops2))

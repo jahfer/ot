@@ -2,6 +2,7 @@
   (:use [compojure.core :only [GET]])
   (:require [clojure.tools.logging :as log]
             [compojure.core :as compojure]
+            [clojure.core.match :refer [match]]
             [ot.core.web-core :as core]
             [puppetlabs.trapperkeeper.core :as tk]))
 
@@ -18,9 +19,10 @@
               context-app (compojure/context url-prefix [] core/editor-routes)]
           (add-ring-handler (compojure/routes
                              (GET "/editor/documents/:id.json" [id]
-                                  (let [uuid (java.util.UUID/fromString id)
-                                        text (request-document uuid)]
-                                    (core/respond-with-doc id text 1)))))
+                                  (let [uuid (java.util.UUID/fromString id)]
+                                    (match (request-document uuid)
+                                           [:text text :deltaid deltaid] (core/respond-with-doc id text deltaid)
+                                           :else (str "Document" id "not found"))))))
           (add-ring-handler context-app)
           (add-ring-handler core/app-routes)
           context))

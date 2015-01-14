@@ -9,12 +9,15 @@
             [ot.operations :as operations]))
 
 (def root-document (atom "Hullo"))
-(def doc-version (atom 0))
+(def deltaids (atom {}))
 (def history (atom (sorted-set-by (fn [a b]
                                     (< (:id a) (:id b))))))
 
 (defn- tag-operation [data]
-  (assoc data :id (swap! doc-version inc)))
+  (let [documentid #uuid "70ef8740-9237-11e4-aec4-054abea3cfa4"]
+    (log/debug @deltaids)
+    (swap! deltaids update-in [documentid] inc')
+    (assoc data :id (get @deltaids documentid))))
 
 (defn- server-parented? [received-id]
   (some #(= received-id %) (map :id @history)))
@@ -56,6 +59,7 @@
   (let [cleaned-data (-> opdata
                          (rebase-incoming @history)
                          (tag-operation))]
+    (log/info "Assigned ID:" (:id cleaned-data))
     (persist! document-store cleaned-data)
     (print-events @history)
     cleaned-data))
@@ -63,11 +67,20 @@
 (defn request-document [document-store documentid]
   (let [select-fn (:select document-store)
         deltas (select-fn "deltas"
-                          [(columns :operations)
-                           (where [[= :documentid documentid]])])
-        hash-deltas (map #(clojure.edn/read-string
-                           {:readers {'ot.operations.Op ot.operations/map->Op}}
-                           (:operations %))
-                         deltas)
-        composed-ops (reduce composers/compose hash-deltas)]
-    (documents/apply-ops "" composed-ops)))
+                          [(columns :operations :deltaid)
+                           (where [[= :documentid documentid]])
+                           (order-by [:deltaid :asc])])]
+    (if (empty? deltas)
+      (when-not (get @deltaids documentid)
+        (swap! deltaids assoc documentid 0N))
+      (let [hash-deltas (map #(clojure.edn/read-string
+                               {:readers {'ot.operations.Op ot.operations/map->Op}}
+                               (:operations %))
+                             deltas)
+            _ (log/debug (pr-str hash-deltas))
+            composed-ops (reduce composers/compose hash-deltas)
+            deltaid (:deltaid (peek deltas))]
+        (when-not (get @deltaids documentid)
+          (swap! deltaids assoc documentid deltaid))
+        [:text (documents/apply-ops "" composed-ops)
+         :deltaid deltaid]))))
