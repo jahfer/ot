@@ -13,12 +13,12 @@
   DocumentStorageService
   [[:ConfigService get-in-config]]
   (init [this context]
-        (log/info "Initializing DocumentStorageService (Cassandra)")
+        (log/debug "Initializing DocumentStorageService (Cassandra)")
         (let [cluster-nodes (get-in-config [:cassandra :cluster :addresses])
               keyspace (get-in-config [:cassandra :cluster :keyspace])]
           (assoc context :db (cc/connect cluster-nodes {:keyspace keyspace}))))
   (start [this context]
-         (log/info "Starting DocumentStorageService (Cassandra)")
+         (log/debug "Starting DocumentStorageService (Cassandra)")
          context)
   (stop [this context]
         (cc/disconnect (:db context))

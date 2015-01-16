@@ -12,10 +12,10 @@
   [[:ConfigService get-in-config]]
   (add-ring-handler [this handlers] (core/add-handlers handlers))
   (init [this context]
-        (log/info "Initializing WebsocketService")
+        (log/debug "Initializing WebsocketService")
         (assoc context :server (atom nil)))
   (start [this context]
-         (log/info "Starting WebsocketService")
+         (log/debug "Starting WebsocketService")
          (let [port (get-in-config [:websocket :port])
                server (:server context)]
            (reset! server (core/start-server port)))

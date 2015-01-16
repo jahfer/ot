@@ -14,7 +14,7 @@
    [:WebsocketService add-ring-handler]
    [:DocumentService submit-request request-document]]
   (init [this context]
-        (log/info "Initializing WebService")
+        (log/debug "Initializing WebService")
         (let [url-prefix (get-in-config [:web :url-prefix])
               context-app (compojure/context url-prefix [] core/editor-routes)]
           (add-ring-handler (compojure/routes
@@ -27,7 +27,7 @@
           (add-ring-handler core/app-routes)
           context))
   (start [this context]
-         (log/info "Starting WebService")
+         (log/info "WebService started")
          (core/handle-connections submit-request)
          context)
   (stop [this context]

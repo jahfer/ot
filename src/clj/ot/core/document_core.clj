@@ -59,7 +59,6 @@
   (let [cleaned-data (-> opdata
                          (rebase-incoming @history)
                          (tag-operation))]
-    (log/info "Assigned ID:" (:id cleaned-data))
     (persist! document-store cleaned-data)
     (print-events @history)
     cleaned-data))

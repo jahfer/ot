@@ -15,10 +15,10 @@
   [[:ConfigService get-in-config]
    DocumentStorageService]
   (init [this context]
-        (log/info "Initializing DocumentService")
+        (log/debug "Initializing DocumentService")
         context)
   (start [this context]
-         (log/info "Starting DocumentService")
+         (log/debug "Starting DocumentService")
          context)
   (stop [this context] context)
   (request-history  [this documentid])
