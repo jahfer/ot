@@ -77,7 +77,6 @@
                                {:readers {'ot.operations.Op ot.operations/map->Op}}
                                (:operations %))
                              deltas)
-            _ (log/debug (pr-str hash-deltas))
             composed-ops (reduce composers/compose hash-deltas)
             deltaid (:deltaid (peek deltas))]
         (when-not (get @deltaids documentid)

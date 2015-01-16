@@ -40,12 +40,13 @@
                                         ; wtf this doesn't make sense
                                         ; how do you compare an insert with a delete?!
 (defmethod compose-ops :insert-and-delete [ops1 ops2 out]
-  (let [val1 (:val (first ops1))
-        val2 (:val (first ops2))
-        ops1' (if (> val1 val2) (assoc-in ops1 [0 :val] (- val1 val2)) (rest ops1))
-        ops2' (if (< val1 val2) (assoc-in ops2 [0 :val] (+ val1 val2)) (rest ops2))]
-    [ops1' ops2' out]))
-
+  [(rest ops1) (rest ops2) out]
+  ;; (let [val1 (:val (first ops1))
+  ;;       val2 (:val (first ops2))
+  ;;       ops1' (if (> (count val1) val2) (assoc-in ops1 [0 :val] (- val1 val2)) (rest ops1))
+  ;;       ops2' (if (< (count val1) val2) (assoc-in ops2 [0 :val] (+ val1 val2)) (rest ops2))]
+  ;;   [ops1' ops2' out])
+  )
 (defmethod compose-ops :retain-and-delete [ops1 ops2 out]
   (let [val1 (:val (first ops1))
         val2 (:val (first ops2))
