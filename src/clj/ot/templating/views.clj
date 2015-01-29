@@ -1,6 +1,5 @@
 (ns ot.templating.views
-  (:require [ot.transforms :as transforms]
-            [clojure.string :as str]
+  (:require [clojure.string :as str]
             [hiccup.page :as hic-p]))
 
 (defn gen-page-head [title]

@@ -1,24 +1,25 @@
-(ns ot.components.editor-input-test
+(ns ot.components.editor-test
   (:require [cemerick.cljs.test :as t]
             [dommy.core :as dommy :refer-macros [sel1]]
             [om.core :as om :include-macros true]
             [ot.lib.test-util :as util]
             [ot.operations :as operations]
             [ot.transforms :as transforms]
-            [ot.components.editor-input :as editor-input])
+            [ot.components.editor :as editor])
   (:require-macros [cemerick.cljs.test
                     :refer (is deftest with-test run-tests testing test-var)]))
 
 (deftest editor-renders?
-  (let [data {:caret 0 :text "Foobar"}]
+  (let [data {:local-id 123 :parent-id 3 :owned-ids [] :text "Foobar"}]
     (testing "Correct editor contents"
       (is (= "Foobar"
              (let [c (util/new-container!)]
-               (om/root editor-input/editor-input data {:target c})
+               (om/root editor/editor-view data {:target c})
                (dommy/text (sel1 c :textarea#editor))))))))
 
 (deftest editor-reacts?
-  (let [data {:caret 6 :text "Foobar"}]
+  (let [data {:text "Foobar"}
+        caret-position 6]
     (testing "gen-insert-op returns a correct description of the user input"
       (is (= (operations/oplist :ret 6 :ins "!")
-             (editor-input/gen-insert-op "!" (atom data)))))))
+             (editor/gen-insert-op "!" caret-position (:text data)))))))

@@ -7,7 +7,6 @@ pom.xml.asc
 *.class
 /.lein-*
 /.nrepl-port
-resources/public/out/*
-resources/public/js/main.js
+resources/public/js/*
 log/*
 resources/reference.js

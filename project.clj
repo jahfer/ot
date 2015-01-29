@@ -14,6 +14,8 @@
 
   :ring {:handler ot.handler/app}
 
+  :prep-tasks [["cljx" "once"]]
+
   :profiles {:default [:base :system :user :provided :clj]
 
              :clj {:dependencies [[ring/ring-core "1.3.1"]
@@ -66,13 +68,13 @@
   :aliases {"server" ["trampoline" "run" "--bootstrap-config" "resources/bootstrap.cfg" "--config" "resources/config.conf"]
             "client" ["with-profile" "cljs" "cljsbuild" "auto" "dev"]
             "cljs-repl" ["with-profile" "cljs" "trampoline" "cljsbuild" "repl-listen"]
-            "clj-test" ["do" "cljx," "with-profile" "clj" "test"]
-            "cljs-test" ["do" "cljx," "with-profile" "cljs" "cljsbuild" "test"]
-            "clj-clean-test" ["do" "clean," "clj-test"]
+            "clj-test" ["with-profile" "clj" "test"]
+            "cljs-test" ["with-profile" "cljs" "cljsbuild" "test"]
+            "clj-clean-test" ["do" "clean,""clj-test"]
             "cljs-clean-test" ["do" "clean," "cljs-test"]
             "all-tests" ["do" "clean," "clj-test," "cljs-test"]}
 
-  :repl-options {:init-ns user}
+  :repl-options {:init-ns ot.repl}
 
   :cljx {:builds [{:source-paths ["src/cljx"]
                    :output-path "target/generated/src/clj"
