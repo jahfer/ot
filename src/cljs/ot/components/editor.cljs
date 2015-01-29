@@ -11,12 +11,12 @@
 
 (enable-console-print!)
 
-(defn editor [editor owner]
-  (reify
-    om/IRenderState
-    (render-state [this {:keys [text] :as state}]
-      (dom/textarea #js {:id "editor"
-                         :value text}))))
+;; (defn editor [editor owner]
+;;   (reify
+;;     om/IRenderState
+;;     (render-state [this {:keys [text] :as state}]
+;;       (dom/textarea #js {:id "editor"
+;;                          :value text}))))
 
 ;; ---------------------------------------------------------------------
 

@@ -3,7 +3,8 @@
             [om.dom :as dom :include-macros true]
             [cljs.core.async :refer [put! chan <!]]
             [ot.components.editor :as editor]
-            [ot.lib.repl :as repl])
+            [ot.lib.repl :as repl]
+            cljsjs.react)
   (:use-macros [jayq.macros :only [ready let-ajax]]))
 
 (enable-console-print!)

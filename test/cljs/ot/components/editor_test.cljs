@@ -7,7 +7,7 @@
             [ot.transforms :as transforms]
             [ot.components.editor :as editor])
   (:require-macros [cemerick.cljs.test
-                    :refer (is deftest with-test run-tests testing test-var)]))
+                    :refer (is deftest testing)]))
 
 (deftest editor-renders?
   (let [data {:local-id 123 :parent-id 3 :owned-ids [] :text "Foobar"}]

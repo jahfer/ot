@@ -43,15 +43,16 @@
                                                    :keyspace "ot_dev"}}
                             :environments {:dev [{:db :cass-dev :migrator :cass-mig}]}}}
 
-             :cljs {:dependencies [[org.clojure/clojurescript "0.0-2371"]
+             :cljs {:dependencies [[org.clojure/clojurescript "0.0-2727"]
                                    [jayq "2.5.2"]
                                    [prismatic/dommy "1.0.0"]
                                    [om "0.6.4"]
-                                   [com.facebook/react "0.8.0.1"]
+                                   [cljsjs/react "0.12.2-5"]
                                    [com.cognitect/transit-cljs "0.8.192"]]
                     :plugins [[lein-cljsbuild "1.0.3"]
                               [com.cemerick/clojurescript.test "0.3.1"]]
-                    :cljsbuild {:builds {:dev {:source-paths ["src/cljs"
+                    :cljsbuild {:builds {:dev {:preamble ["react/react.min.js"]
+                                               :source-paths ["src/cljs"
                                                               "test/cljs"
                                                               "target/generated/src/cljs"
                                                               "target/generated/test/cljs"]
@@ -61,18 +62,16 @@
                                                           :pretty-print true
                                                           :source-map "resources/public/js/out/main.js.map"}}}
                                 :test-commands {"unit-tests" ["slimerjs" :runner
-                                                              "resources/public/js/vendor/react-0.8.0.js"
                                                               "resources/public/js/vendor/jquery-1.10.2.min.js"
                                                               "resources/public/js/out/main.js"]}}}}
 
   :aliases {"server" ["trampoline" "run" "--bootstrap-config" "resources/bootstrap.cfg" "--config" "resources/config.conf"]
             "client" ["with-profile" "cljs" "cljsbuild" "auto" "dev"]
             "cljs-repl" ["with-profile" "cljs" "trampoline" "cljsbuild" "repl-listen"]
-            "clj-test" ["with-profile" "clj" "test"]
             "cljs-test" ["with-profile" "cljs" "cljsbuild" "test"]
-            "clj-clean-test" ["do" "clean,""clj-test"]
+            "clj-clean-test" ["do" "clean," "test"]
             "cljs-clean-test" ["do" "clean," "cljs-test"]
-            "all-tests" ["do" "clean," "clj-test," "cljs-test"]}
+            "all-tests" ["do" "test," "cljs-test"]}
 
   :repl-options {:init-ns ot.repl}
 
