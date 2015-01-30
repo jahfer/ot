@@ -67,11 +67,12 @@
 
   :aliases {"server" ["trampoline" "run" "--bootstrap-config" "resources/bootstrap.cfg" "--config" "resources/config.conf"]
             "client" ["with-profile" "cljs" "cljsbuild" "auto" "dev"]
+            "clj-test" ["with-profile" "clj" "test"]
             "cljs-repl" ["with-profile" "cljs" "trampoline" "cljsbuild" "repl-listen"]
             "cljs-test" ["with-profile" "cljs" "cljsbuild" "test"]
-            "clj-clean-test" ["do" "clean," "test"]
+            "clj-clean-test" ["do" "clean," "clj-test"]
             "cljs-clean-test" ["do" "clean," "cljs-test"]
-            "all-tests" ["do" "test," "cljs-test"]}
+            "all-tests" ["do" "with-profile" "clj" "test," "with-profile" "cljs" "cljsbuild" "test"]}
 
   :repl-options {:init-ns ot.repl}
 
