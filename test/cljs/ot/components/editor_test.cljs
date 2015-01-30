@@ -10,7 +10,8 @@
                     :refer (is deftest testing)]))
 
 (deftest editor-renders?
-  (let [data {:local-id 123 :parent-id 3 :owned-ids [] :text "Foobar"}]
+  (let [data {:local-id 123 :owned-ids []}
+        init-state {:text "Foobar" :parent-id 3}]
     (testing "Correct editor contents"
       (is (= "Foobar"
              (let [c (util/new-container!)]

@@ -4,6 +4,7 @@
             [cljs.core.async :refer [put! chan <!]]
             [ot.components.editor :as editor]
             [ot.lib.repl :as repl]
+            [ot.lib.queue2 :as q2]
             cljsjs.react)
   (:use-macros [jayq.macros :only [ready let-ajax]]))
 
@@ -12,8 +13,7 @@
 ;; Define intial state of app
 (def app-state (atom {:editor {:local-id []
                                :parent-id []
-                               :owned-ids []
-                               :text ""}}))
+                               :owned-ids []}}))
 
 ;; Entrance point
 (defn ot-app [app owner]
@@ -25,7 +25,8 @@
                            (dom/h1 #js {:className "page-title"} "Editor"))
                (om/build editor/editor-view (:editor app)
                          {:init-state {:text (get-in app [:editor :text])
-                                       :parent-id (get-in app [:editor :parent-id 0])}})))))
+                                       :parent-id (get-in app [:editor :parent-id 0])
+                                       :queue (q2/new-queue "ws://localhost:3000/editor/ws")}})))))
 
 (defn main [target state]
   (om/root ot-app state {:target target}))

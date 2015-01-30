@@ -1,6 +1,6 @@
 language: clojure
 lein: lein2
-script: lein2 do cljx, with-profile cljs cljsbuild test
+script: lein2 all-tests
 env:
     - SLIMERJSLAUNCHER=$(which firefox) DISPLAY=:99.0 PATH=$TRAVIS_BUILD_DIR/slimerjs:$PATH
 addons:

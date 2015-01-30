@@ -1,16 +1,16 @@
 (ns ot.lib.sockets
   (:require [cljs.core.async :refer [put! chan]]))
 
-(def recv (chan))
-(def ws-url "ws://localhost:3000/editor/ws")
-(def socket (new js/WebSocket ws-url))
+(defn send [ws data]
+  (.send (:socket ws) data))
 
-(defn make-receiver []
-  (set! (.-onmessage socket) (fn [msg]
+(defn make-receiver [ws]
+  (set! (.-onmessage (:socket ws)) (fn [msg]
                                (when-let [data (.-data msg)]
-                                 (put! recv data)))))
+                                 (put! (:received ws) data)))))
 
-(defn send [data]
-  (.send socket data))
+(defn init! [ws] (make-receiver ws))
 
-(defn init! [] (make-receiver))
+(defn new-socket [url]
+  {:socket (new js/WebSocket url)
+   :received (chan)})

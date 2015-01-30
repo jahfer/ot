@@ -14,8 +14,6 @@
 
   :ring {:handler ot.handler/app}
 
-  :prep-tasks [["cljx" "once"]]
-
   :profiles {:default [:base :system :user :provided :clj]
 
              :clj {:dependencies [[ring/ring-core "1.3.1"]
@@ -43,10 +41,10 @@
                                                    :keyspace "ot_dev"}}
                             :environments {:dev [{:db :cass-dev :migrator :cass-mig}]}}}
 
-             :cljs {:dependencies [[org.clojure/clojurescript "0.0-2727"]
+             :cljs {:dependencies [[org.clojure/clojurescript "0.0-2740"]
                                    [jayq "2.5.2"]
                                    [prismatic/dommy "1.0.0"]
-                                   [om "0.6.4"]
+                                   [org.omcljs/om "0.8.7"]
                                    [cljsjs/react "0.12.2-5"]
                                    [com.cognitect/transit-cljs "0.8.192"]]
                     :plugins [[lein-cljsbuild "1.0.3"]
