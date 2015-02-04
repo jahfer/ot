@@ -12,6 +12,8 @@
 
   :plugins [[com.keminglabs/cljx "0.5.0"]]
 
+  ;:prep-tasks [["cljx" "once"]]
+
   :ring {:handler ot.handler/app}
 
   :profiles {:default [:base :system :user :provided :clj]
@@ -70,7 +72,7 @@
             "cljs-test" ["with-profile" "cljs" "cljsbuild" "test"]
             "clj-clean-test" ["do" "clean," "clj-test"]
             "cljs-clean-test" ["do" "clean," "cljs-test"]
-            "all-tests" ["do" "with-profile" "clj" "test," "with-profile" "cljs" "cljsbuild" "test"]}
+            "all-tests" ["do" "cljx" "once," "with-profile" "clj" "test," "with-profile" "cljs" "cljsbuild" "test"]}
 
   :repl-options {:init-ns ot.repl}
 
