@@ -66,7 +66,6 @@
        :caret 0})
     om/IWillMount
     (will-mount [this]
-      (q2/init! (om/get-state owner :queue) app)
       (let [comm (om/get-state owner :comm)
             queue (om/get-state owner :queue)]
         (go-loop []
@@ -99,12 +98,7 @@
             (om/set-state! owner :parent-id id)
             (recur)))
         (go-loop []
-          (let [id (<! (:sent-ids queue))]
-            (om/transact! app :owned-ids #(conj % id))
-            (recur)))
-        (go-loop []
-          (let [{:keys [local-id server-id]} (<! (:recv-ids queue))]
-            (om/transact! app :owned-ids #(vec (remove #{local-id} %)))
+          (let [{:keys [server-id]} (<! (:recv-ids queue))]
             (om/set-state! owner :parent-id server-id)
             (recur)))))
     om/IDidUpdate

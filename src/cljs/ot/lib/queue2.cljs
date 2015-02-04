@@ -13,29 +13,31 @@
 (defn- build-state []
   {:inbound         (chan)
    :buffer-has-item (chan)
-   :sent-ids        (chan)
    :recv-ids        (chan)
+   :owned-ids       (atom [])
    :buffer          (atom {})
    :last-client-op  (atom [])})
 
-(defn- poll-incoming [queue owned-ids-lens]
+(defn- poll-incoming [queue]
   (go-loop []
     (let [response (<! (get-in queue [:ws :received]))
           _ (println "poll-incoming")
           reader (transit/reader :json {:handlers transit-handlers/read-handlers})
           data (transit/read reader response)
           local-id (:local-id data)
-          server-id (:id data)]
+          server-id (:id data)
+          owned-ids (:owned-ids queue)]
       (println "[iq ->] Received operation from server")
-      (if (util/in? @owned-ids-lens local-id)
+      (if (util/in? @owned-ids local-id)
         (do
           (println "  [...] Confirmed operation roundtrip success")
           (when (seq (:ops (deref (:buffer queue))))
             (println "poll-incoming updating parent-id")
             (swap! (:buffer queue) assoc :parent-id server-id))
+          (swap! (:owned-ids queue) #(vec (remove #{local-id} %)))
           (reset! (:last-client-op queue) [])
           (put! (:confirmation queue) response)
-          (put! (:recv-ids queue) {:local-id local-id :server-id server-id}))
+          (put! (:recv-ids queue) {:server-id server-id}))
         (put! (:inbound queue) data)))))
 
 (defn- set-last-op! [last-op-atom op]
@@ -60,7 +62,7 @@
           (let [writer (transit/writer :json {:handlers transit-handlers/write-handlers})
                 serialized (transit/write writer out)]
             (println "[bq <~] Sending operations to the server")
-            (put! (:sent-ids queue) (:local-id out))
+            (swap! (:owned-ids queue) #(conj % (:local-id out)))
             (ws/send (:ws queue) serialized)))
         (recur)))
     ackc))
@@ -73,13 +75,11 @@
         (put! (:buffer-has-item queue) true))
       (swap! buffer #(update-in % [:ops] composers/compose (:ops data))))))
 
-(defn init! [queue cursor]
-  (poll-incoming queue (:owned-ids cursor)))
-
 (defn new-queue [ws-url]
   (let [state (-> (build-state)
                   (assoc :ws (ws/new-socket ws-url)))]
     (ws/init! (:ws state))
+    (poll-incoming state)
     (let [ackc (throttle-outgoing state)]
       (put! ackc true)
       (assoc state :confirmation ackc))))
