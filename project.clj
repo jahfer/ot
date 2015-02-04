@@ -47,8 +47,8 @@
                                    [org.omcljs/om "0.8.7"]
                                    [cljsjs/react "0.12.2-5"]
                                    [com.cognitect/transit-cljs "0.8.192"]]
-                    :plugins [[lein-cljsbuild "1.0.3"]
-                              [com.cemerick/clojurescript.test "0.3.1"]]
+                    :plugins [[lein-cljsbuild "1.0.4"]
+                              [com.cemerick/clojurescript.test "0.3.3"]]
                     :cljsbuild {:builds {:dev {:preamble ["react/react.min.js"]
                                                :source-paths ["src/cljs"
                                                               "test/cljs"

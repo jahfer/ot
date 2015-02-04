@@ -7,16 +7,27 @@
             [ot.transforms :as transforms]
             [ot.components.editor :as editor])
   (:require-macros [cemerick.cljs.test
-                    :refer (is deftest testing)]))
+                    :refer (is deftest testing done)]))
 
-(deftest editor-renders?
-  (let [data {:local-id 123 :owned-ids []}
+(enable-console-print!)
+
+(defn build-editor-view [init-state]
+  (fn [app owner]
+    (reify
+      om/IRender
+      (render [_]
+        (om/build editor/editor-view (:editor app)
+                  {:init-state init-state})))))
+
+(deftest ^:async editor-renders?
+  (let [data {:editor {:local-id 123 :owned-ids []}}
         init-state {:text "Foobar" :parent-id 3}]
     (testing "Correct editor contents"
       (is (= "Foobar"
              (let [c (util/new-container!)]
-               (om/root editor/editor-view data {:target c})
-               (dommy/text (sel1 c :textarea#editor))))))))
+               (om/root (build-editor-view init-state) data {:target c})
+               (dommy/text (sel1 :textarea#editor)))))
+      (done))))
 
 (deftest editor-reacts?
   (let [data {:text "Foobar"}
