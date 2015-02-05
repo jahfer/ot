@@ -4,6 +4,11 @@
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
 
+  :plugins [[com.cemerick/clojurescript.test "0.3.3"]
+            [com.keminglabs/cljx "0.5.0"]
+            [joplin.lein "0.2.4"]
+            [lein-cljsbuild "1.0.4"]]
+
   :dependencies [;; general
                  [org.clojure/clojure "1.6.0"]
                  [org.clojure/core.async "0.1.346.0-17112a-alpha"]
@@ -41,8 +46,6 @@
   :profiles {:dev {:source-paths ["target/generated/src/clj" "src/clj" "db"]
                    :test-paths   ["target/generated/test/clj" "test/clj"]
                    :resource-paths ["resources" "target/generated/src/cljs"]
-                   :plugins [[com.keminglabs/cljx "0.5.0"]
-                             [com.cemerick/clojurescript.test "0.3.3"]]
                    :env {:is-dev true}
                    :joplin {:migrators {:cass-mig "db/migrators/cass"}
                             :databases {:cass-dev {:type :cass
@@ -90,5 +93,5 @@
   
   :aliases {"server" ["do" "cljx" "once," "trampoline" "run" "--bootstrap-config" "resources/bootstrap.cfg" "--config" "resources/config.conf"]
             "client" ["do" "cljx" "once," "cljsbuild" "auto" "test"]
-            "cleantest" ["do" "with-profile" "dev" "clean," "cljx" "once," "test," "cljsbuild" "test"]
+            "cleantest" ["do" "clean," "cljx" "once," "test," "cljsbuild" "test"]
             "cljs-repl" ["trampoline" "cljsbuild" "repl-listen"]})
