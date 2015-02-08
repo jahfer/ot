@@ -1,4 +1,4 @@
-(ns user
+(ns ot.repl
   (:require [clojure.pprint :refer (pprint)]
             [ot.services.web-service :refer [web-service]]
             [ot.services.document-service :refer [document-service]]

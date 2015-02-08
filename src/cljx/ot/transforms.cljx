@@ -31,41 +31,35 @@
 (defn gen-inverse-ops [ops1 ops2 ops']
   (cond
    (o/insert? (first ops1))
-     (let [_ (println "-- insert first")
-           ops' (-> (first ops1)
+     (let [ops' (-> (first ops1)
                     (insert)
                     (o/assoc-op ops'))]
        [(rest ops1) ops2 ops'])
    (o/insert? (first ops2))
-     (let [_ (println "-- insert second")
-           ops' (-> (first ops2)
+     (let [ops' (-> (first ops2)
                     (insert)
                     (o/assoc-op (reverse ops'))
                     (reverse))]
        [ops1 (rest ops2) ops'])
    (every? o/retain? (map first (list ops1 ops2)))
-     (let [_ (println "-- retain both")
-           [ops1 ops2 result] (retain-ops ops1 ops2)]
+     (let [[ops1 ops2 result] (retain-ops ops1 ops2)]
        [ops1 ops2 (o/assoc-op result ops')])
    (every? o/delete? (map first (list ops1 ops2)))
-     (let [_ (println "-- delete both")
-           val1 (:val (first ops1))
+     (let [val1 (:val (first ops1))
            val2 (:val (first ops2))]
        (cond
         (> (- val1) (- val2)) [(update-in ops1 [0 :val] #(- % val2)) (rest ops2) ops']
         (= val1 val2) [(rest ops1) (rest ops2) ops']
         :else [(rest ops1) (update-in ops2 [0 :val] #(- % val1))]))
    (and (o/delete? (first ops1)) (o/retain? (first ops2)))
-     (let [_ (println "-- delete + retain")
-           val1 (:val (first ops1))
+     (let [val1 (:val (first ops1))
            val2 (:val (first ops2))]
        (cond
         (> val1 val2) [(update-in ops1 [0 :val] #(+ % val2)) (rest ops2) (o/assoc-op (first ops2) ops')]
         (= val1 val2) [(rest ops1) (rest ops2) [(conj (first ops') (first ops1)) (second ops')]]
         :else [(rest ops1) (+ val1 val2) (o/assoc-op (assoc (first ops1) :val (- val1)) ops')]))
    (and (o/retain? (first ops1)) (o/delete? (first ops2)))
-     (let [_ (println "-- retain + delete")
-           val1 (:val (first ops1))
+     (let [val1 (:val (first ops1))
            val2 (:val (first ops2))]
        (cond
         (> val1 val2) [(update-in ops1 [0 :val] #(- % val2)) (rest ops2) (o/assoc-op (assoc (first ops2) :val (- val2)) ops')]

@@ -4,75 +4,54 @@
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
 
-  :dependencies [[org.clojure/clojure "1.6.0"]
+  :plugins [[com.cemerick/clojurescript.test "0.3.3"]
+            [com.keminglabs/cljx "0.5.0"]
+            [joplin.lein "0.2.4"]
+            [lein-cljsbuild "1.0.4"]]
+
+  :dependencies [;; general
+                 [org.clojure/clojure "1.6.0"]
                  [org.clojure/core.async "0.1.346.0-17112a-alpha"]
-                 [org.clojure/core.match "0.2.1"]]
+                 [org.clojure/core.match "0.2.1"]
+                 [com.cemerick/piggieback "0.1.5"] ; temporary for CLJX
+                 ;; server
+                 [ring/ring-core "1.3.1"]
+                 [compojure "1.2.1"]
+                 [http-kit "2.1.18"]
+                 [hiccup "1.0.5"]
+                 [joplin.core "0.2.4"]
+                 [clojurewerkz/cassaforte "2.0.0"]
+                 [com.cognitect/transit-clj "0.8.259"]
+                 [org.clojure/tools.nrepl "0.2.3"]
+                 [org.clojure/tools.cli "0.3.1"]
+                 [puppetlabs/trapperkeeper "1.0.1"]
+                 [puppetlabs/trapperkeeper "1.0.1" :classifier "test" :scope "test"]
+                 [javax.servlet/servlet-api "2.5"]
+                 [org.clojure/tools.logging "0.2.6"]
+                 [org.clojure/tools.namespace "0.2.4"]
+                 ;; client
+                 [org.clojure/clojurescript "0.0-2740"]
+                 [jayq "2.5.2"]
+                 [prismatic/dommy "1.0.0"]
+                 [org.omcljs/om "0.8.7"]
+                 [cljsjs/react "0.12.2-5"]
+                 [com.cognitect/transit-cljs "0.8.192"]]
 
   :main puppetlabs.trapperkeeper.main
-
-  :plugins [[com.keminglabs/cljx "0.5.0"]]
-
+  
   :ring {:handler ot.handler/app}
 
-  :profiles {:default [:base :system :user :provided :clj]
+  :repl-options {:init-ns ot.repl}
 
-             :clj {:dependencies [[ring/ring-core "1.3.1"]
-                                  [compojure "1.2.1"]
-                                  [http-kit "2.1.18"]
-                                  [hiccup "1.0.5"]
-                                  [joplin.core "0.2.4"]
-                                  [clojurewerkz/cassaforte "2.0.0"]
-                                  [com.cognitect/transit-clj "0.8.259"]
-                                  [org.clojure/tools.nrepl "0.2.3"]
-                                  [org.clojure/tools.cli "0.3.1"]
-                                  [puppetlabs/trapperkeeper "1.0.1"]
-                                  [puppetlabs/trapperkeeper "1.0.1" :classifier "test" :scope "test"]
-                                  [javax.servlet/servlet-api "2.5"]
-                                  [org.clojure/tools.logging "0.2.6"]
-                                  [org.clojure/tools.namespace "0.2.4"]]
-                   :plugins [[joplin.lein "0.2.4"]]
-                   :source-paths ["target/generated/src/clj" "src/clj" "db"]
+  :profiles {:dev {:source-paths ["target/generated/src/clj" "src/clj" "db"]
                    :test-paths   ["target/generated/test/clj" "test/clj"]
                    :resource-paths ["resources" "target/generated/src/cljs"]
-
+                   :env {:is-dev true}
                    :joplin {:migrators {:cass-mig "db/migrators/cass"}
                             :databases {:cass-dev {:type :cass
                                                    :hosts ["localhost"]
                                                    :keyspace "ot_dev"}}
-                            :environments {:dev [{:db :cass-dev :migrator :cass-mig}]}}}
-
-             :cljs {:dependencies [[org.clojure/clojurescript "0.0-2371"]
-                                   [jayq "2.5.2"]
-                                   [prismatic/dommy "1.0.0"]
-                                   [om "0.6.4"]
-                                   [com.facebook/react "0.8.0.1"]
-                                   [com.cognitect/transit-cljs "0.8.192"]]
-                    :plugins [[lein-cljsbuild "1.0.3"]
-                              [com.cemerick/clojurescript.test "0.3.1"]]
-                    :cljsbuild {:builds {:dev {:source-paths ["src/cljs"
-                                                              "test/cljs"
-                                                              "target/generated/src/cljs"
-                                                              "target/generated/test/cljs"]
-                                               :compiler {:output-to "resources/public/js/out/main.js"
-                                                          :output-dir "resources/public/js/out"
-                                                          :optimizations :whitespace
-                                                          :pretty-print true
-                                                          :source-map "resources/public/js/out/main.js.map"}}}
-                                :test-commands {"unit-tests" ["slimerjs" :runner
-                                                              "resources/public/js/vendor/react-0.8.0.js"
-                                                              "resources/public/js/vendor/jquery-1.10.2.min.js"
-                                                              "resources/public/js/out/main.js"]}}}}
-
-  :aliases {"server" ["trampoline" "run" "--bootstrap-config" "resources/bootstrap.cfg" "--config" "resources/config.conf"]
-            "client" ["with-profile" "cljs" "cljsbuild" "auto" "dev"]
-            "cljs-repl" ["with-profile" "cljs" "trampoline" "cljsbuild" "repl-listen"]
-            "clj-test" ["do" "cljx," "with-profile" "clj" "test"]
-            "cljs-test" ["do" "cljx," "with-profile" "cljs" "cljsbuild" "test"]
-            "clj-clean-test" ["do" "clean," "clj-test"]
-            "cljs-clean-test" ["do" "clean," "cljs-test"]
-            "all-tests" ["do" "clean," "clj-test," "cljs-test"]}
-
-  :repl-options {:init-ns user}
+                            :environments {:dev [{:db :cass-dev :migrator :cass-mig}]}}}}
 
   :cljx {:builds [{:source-paths ["src/cljx"]
                    :output-path "target/generated/src/clj"
@@ -85,4 +64,29 @@
                    :rules :clj}
                   {:source-paths ["test/cljx"]
                    :output-path "target/generated/test/cljs"
-                   :rules :cljs}]})
+                   :rules :cljs}]}
+
+  :cljsbuild {:builds {:test {:source-paths ["src/cljs"
+                                             "test/cljs"
+                                             "target/generated/src/cljs"
+                                             "target/generated/test/cljs"]
+                              :notify-command ["slimerjs" :cljs.test/runner
+                                               "resources/public/js/vendor/jquery-1.10.2.min.js"
+                                               "resources/public/js/dev/main.js"]
+                              :compiler {:output-to "resources/public/js/dev/main.js"
+                                         :output-dir "resources/public/js/dev"
+                                         :optimizations :whitespace
+                                         :pretty-print true
+                                         :source-map "resources/public/js/dev/main.js.map"}}}
+
+              :test-commands {"unit" ["slimerjs" :runner
+                                      "resources/public/js/vendor/jquery-1.10.2.min.js"
+                                      "resources/public/js/dev/main.js"]}}
+  
+  :aliases {"server" ["do" "cljx" "once," "trampoline" "run" "--bootstrap-config" "resources/bootstrap.cfg" "--config" "resources/config.conf"]
+            "client" ["do" "cljx" "once," "cljsbuild" "auto" "test"]
+            "cleantest" ["do" "clean,"
+                         "cljx" "once,"
+                         "trampoline" "test,"
+                         "cljsbuild" "test"]
+            "cljs-repl" ["trampoline" "cljsbuild" "repl-listen"]})

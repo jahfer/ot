@@ -2,8 +2,7 @@
   (:require [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]
             [cljs.core.async :refer [put! chan <!]]
-            [ot.components.editor-input :as input]
-            [ot.lib.queue :as queue]
+            [ot.lib.queue2 :as q2]
             [ot.lib.util :as util]
             [ot.operations :as operations]
             [ot.documents :as documents]
@@ -11,15 +10,6 @@
   (:require-macros [cljs.core.async.macros :refer [go go-loop alt!]]))
 
 (enable-console-print!)
-
-(defn editor [editor owner]
-  (reify
-    om/IRenderState
-    (render-state [this {:keys [text] :as state}]
-      (dom/textarea #js {:id "editor"
-                         :value text}))))
-
-;; ---------------------------------------------------------------------
 
 (defn caret-position
   "gets or sets the current cursor position"
@@ -76,44 +66,39 @@
        :caret 0})
     om/IWillMount
     (will-mount [this]
-      (queue/init! app)
-      (let [comm (om/get-state owner :comm)]
+      (let [comm (om/get-state owner :comm)
+            queue (om/get-state owner :queue)]
         (go-loop []
           (let [ops (<! comm)]
             (om/set-state! owner :local-id (util/unique-id))
-            (queue/send {:local-id (om/get-state owner :local-id)
-                         :parent-id (om/get-state owner :parent-id)
-                         :ops ops})
+            (q2/send queue {:local-id (om/get-state owner :local-id)
+                            :parent-id (om/get-state owner :parent-id)
+                            :ops ops})
             (recur)))
         (go-loop []
-          (let [{:keys [id ops]} (<! queue/inbound)
-                last-op (deref queue/last-client-op)]
+          (let [{:keys [id ops]} (<! (:inbound queue))
+                last-op (deref (:last-client-op queue))]
             (if (seq last-op)
-                                        ; client in a buffer state
-                                        ; need to convert incoming to match what server produces
+              ;; client in a buffer state
+              ;; need to convert incoming to match what server produces
               (let [[a'' c''] (transforms/transform last-op ops)
-                    buf (:ops (deref queue/buffer))]
+                    buf (:ops (deref (:buffer queue)))]
                 (if (seq buf)
-                                        ; rebase client queue on server op
+                  ;; rebase client queue on server op
                   (let [[buf' ops'] (transforms/transform buf c'')]
-                    (swap! queue/buffer assoc :ops buf')
+                    (swap! (:buffer queue) assoc :ops buf')
                     (update-text! owner ops'))
-                                        ; nothing to rebase
+                  ;; nothing to rebase
                   (update-text! owner c''))
-                                        ; keep up to date with transformations
-                (reset! queue/last-client-op a''))
-                                        ; client hasn't performed actions, can apply cleanly
+                ;; keep up to date with transformations
+                (reset! (:last-client-op queue) a''))
+              ;; client hasn't performed actions, can apply cleanly
               (update-text! owner ops))
-                                        ; acknowledge that we're on the latest parent
+            ;; acknowledge that we're on the latest parent
             (om/set-state! owner :parent-id id)
             (recur)))
         (go-loop []
-          (let [id (<! queue/sent-ids)]
-            (om/transact! app :owned-ids #(conj % id))
-            (recur)))
-        (go-loop []
-          (let [{:keys [local-id server-id]} (<! queue/recv-ids)]
-            (om/transact! app :owned-ids #(vec (remove #{local-id} %)))
+          (let [{:keys [server-id]} (<! (:recv-ids queue))]
             (om/set-state! owner :parent-id server-id)
             (recur)))))
     om/IDidUpdate
