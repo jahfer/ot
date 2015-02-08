@@ -10,5 +10,5 @@ machine:
 test:
   pre:
     - lein cljx once
-  override:
-    - lein cleantest
+  post:
+    - lein cljsbuild test

@@ -77,14 +77,8 @@
                                          :output-dir "resources/public/js/dev"
                                          :optimizations :whitespace
                                          :pretty-print true
-                                         :source-map "resources/public/js/dev/main.js.map"}}
-                       
-                       :prod {:source-paths ["src/cljs" "target/generated/src/cljs"]
-                              :compiler {:output-to "resources/public/js/main.js"
-                                         :output-dir "resources/public/js"
-                                         :optimizations :advanced
-                                         :pretty-print false}}}
-              
+                                         :source-map "resources/public/js/dev/main.js.map"}}}
+
               :test-commands {"unit" ["slimerjs" :runner
                                       "resources/public/js/vendor/jquery-1.10.2.min.js"
                                       "resources/public/js/dev/main.js"]}}
