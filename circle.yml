@@ -10,3 +10,5 @@ machine:
 test:
   pre:
     - lein cljx once
+  override:
+    - lein cleantest
