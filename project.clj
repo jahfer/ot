@@ -66,8 +66,7 @@
                    :output-path "target/generated/test/cljs"
                    :rules :cljs}]}
 
-  :cljsbuild {:builds {:test {:preamble ["react/react.min.js"]
-                              :source-paths ["src/cljs"
+  :cljsbuild {:builds {:test {:source-paths ["src/cljs"
                                              "test/cljs"
                                              "target/generated/src/cljs"
                                              "target/generated/test/cljs"]
@@ -80,8 +79,7 @@
                                          :pretty-print true
                                          :source-map "resources/public/js/dev/main.js.map"}}
                        
-                       :prod {:preamble ["react/react.min.js"]
-                              :source-paths ["src/cljs" "target/generated/src/cljs"]
+                       :prod {:source-paths ["src/cljs" "target/generated/src/cljs"]
                               :compiler {:output-to "resources/public/js/main.js"
                                          :output-dir "resources/public/js"
                                          :optimizations :advanced
