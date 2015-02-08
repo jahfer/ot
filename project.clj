@@ -85,5 +85,8 @@
   
   :aliases {"server" ["do" "cljx" "once," "trampoline" "run" "--bootstrap-config" "resources/bootstrap.cfg" "--config" "resources/config.conf"]
             "client" ["do" "cljx" "once," "cljsbuild" "auto" "test"]
-            "cleantest" ["do" "clean," "cljx" "once," "test," "cljsbuild" "test"]
+            "cleantest" ["do" "clean,"
+                         "trampoline" "cljx" "once,"
+                         "trampoline" "test,"
+                         "cljsbuild" "test"]
             "cljs-repl" ["trampoline" "cljsbuild" "repl-listen"]})
