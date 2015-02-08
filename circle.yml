@@ -1,0 +1,12 @@
+machine:
+  environment:
+    SLIMERJSLAUNCHER: $(which firefox)
+    PATH: $PATH:$HOME/slimerjs
+  pre:
+    - curl -k -L -o slimerjs.tar.bz2 http://download.slimerjs.org/v0.9/0.9.1/slimerjs-0.9.1-linux-x86_64.tar.bz2
+    - tar -jxf slimerjs.tar.bz2
+    - mv slimerjs-0.9.1 $HOME/slimerjs
+
+test:
+  pre:
+    - lein cljx once
