@@ -75,11 +75,15 @@
         (put! (:buffer-has-item queue) true))
       (swap! buffer #(update-in % [:ops] composers/compose (:ops data))))))
 
+(defn init! [queue]
+  (ws/init! (:ws queue))
+  (poll-incoming queue)
+  queue)
+
 (defn new-queue [ws-url]
   (let [state (-> (build-state)
                   (assoc :ws (ws/new-socket ws-url)))]
-    (ws/init! (:ws state))
-    (poll-incoming state)
-    (let [ackc (throttle-outgoing state)]
+    (let [ackc (throttle-outgoing state)
+          queue (assoc state :confirmation ackc)]
       (put! ackc true)
-      (assoc state :confirmation ackc))))
+      (init! queue))))
