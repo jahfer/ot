@@ -6,7 +6,6 @@
 
   :plugins [[com.cemerick/clojurescript.test "0.3.3"]
             [com.keminglabs/cljx "0.5.0"]
-            [joplin.lein "0.2.4"]
             [lein-cljsbuild "1.0.4"]]
 
   :dependencies [;; general
@@ -19,7 +18,8 @@
                  [compojure "1.2.1"]
                  [http-kit "2.1.18"]
                  [hiccup "1.0.5"]
-                 [joplin.core "0.2.4"]
+                 [joplin.core "0.2.7"]
+                 [joplin.cassandra "0.2.7"]
                  [clojurewerkz/cassaforte "2.0.0"]
                  [com.cognitect/transit-clj "0.8.259"]
                  [org.clojure/tools.nrepl "0.2.3"]
@@ -28,7 +28,7 @@
                  [puppetlabs/trapperkeeper "1.0.1" :classifier "test" :scope "test"]
                  [javax.servlet/servlet-api "2.5"]
                  [org.clojure/tools.logging "0.2.6"]
-                 [org.clojure/tools.namespace "0.2.4"]
+                 [org.clojure/tools.namespace "0.2.9"]
                  ;; client
                  [org.clojure/clojurescript "0.0-2740"]
                  [jayq "2.5.2"]

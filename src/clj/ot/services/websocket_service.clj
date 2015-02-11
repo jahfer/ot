@@ -22,5 +22,6 @@
          context)
   (stop [this context]
         (let [server (:server context)]
+          (@server :timeout 100)
           (reset! server nil))
         context))
