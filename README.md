@@ -2,23 +2,31 @@
 `ot` is a basic implementation of Operational Transforms, used to resolve concurrent edits of a document from multiple sources.
 
 ## Usage
-```
-Start server:
+### Start server:
+```shell
 $ lein server
+```
 
-Start server using reloaded pattern:
+### Start server using reloaded pattern:
+```shell
 $ lein repl
-$ (go) # change code...
-$ (reset)
+ot.repl> (go) # change code...
+ot.repl> (reset)
+```
 
-Compile and watch cljs + cljx:
+### Compile and watch cljs + cljx:
+```shell
 $ lein client # runs tests on compile!
 $ lein cljx auto
+```
 
-Run tests:
+### Run tests:
+```shell
 $ lein cleantest
+```
 
-Run specific group of tests:
+### Run specific group of tests:
+```shell
 $ lein do cljx, clj-test # or...
 $ lein do cljx, cljs-test
 ```
