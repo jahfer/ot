@@ -9,8 +9,13 @@ $ lein client
 Start server:
 $ lein server
 
+Start server using reloaded pattern:
+$ lein repl
+$ (go) # change code...
+$ (reset)
+
 Run tests:
-$ lein all-tests
+$ lein cleantest
 
 Run specific group of tests:
 $ lein do cljx, clj-test # or...
@@ -25,6 +30,6 @@ $ lein do cljx, cljs-test
 - [OT Explained](http://operational-transformation.github.io/index.html)
 
 ## License
-Copyright © 2014 EPL
+Copyright © 2015 EPL
 
 Distributed under the Eclipse Public License version 1.0.
