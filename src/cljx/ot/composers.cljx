@@ -5,6 +5,8 @@
             #+cljs [cljs.core.match])
   #+cljs (:require-macros [cljs.core.match.macros :refer [match]]))
 
+#+cljs (enable-console-print!)
+
 (defmulti compose-ops 
   (fn [ops1 ops2 _]
     (let [op1 (first ops1)
@@ -48,11 +50,14 @@
   ;;   [ops1' ops2' out])
   )
 (defmethod compose-ops :retain-and-delete [ops1 ops2 out]
-  (let [val1 (:val (first ops1))
-        val2 (:val (first ops2))
-        ops1' (if (> val1 val2) (assoc-in ops1 [0 :val] (+ val1 val2)) (rest ops1))
-        ops2' (if (< val1 val2) (assoc-in ops2 [0 :val] (+ val2 val1)) (rest ops2))]
-    [ops1' ops2' out]))
+  (let [del-op (first ops2)]
+    [(rest ops1) (rest ops2) (conj out del-op)])
+  ;; (let [val1 (:val (first ops1))
+  ;;       val2 (:val (first ops2))
+  ;;       ops1' (if (> val1 val2) (assoc-in ops1 [0 :val] (+ val1 val2)) (rest ops1))
+  ;;       ops2' (if (< val1 val2) (assoc-in ops2 [0 :val] (+ val2 val1)) (rest ops2))]
+  ;;   [ops1' ops2' out])
+  )
 
 (defn compose [a b]
   (loop [ops1 a, ops2 b, composed []]

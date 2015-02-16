@@ -46,6 +46,8 @@
   :profiles {:dev {:source-paths ["target/generated/src/clj" "src/clj" "db"]
                    :test-paths   ["target/generated/test/clj" "test/clj"]
                    :resource-paths ["resources" "target/generated/src/cljs"]
+                   :jvm-opts ["-Xverify:none"]
+                   ;; :java-cmd "drip"
                    :env {:is-dev true}
                    :joplin {:migrators {:cass-mig "db/migrators/cass"}
                             :databases {:cass-dev {:type :cass
