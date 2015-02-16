@@ -4,14 +4,12 @@
   (:require [clojure.tools.logging :as log]
             [compojure.core :as compojure]))
 
-(def ring-handlers (atom {}))
-
-(defn params-thru-middleware []
-  (-> @ring-handlers
+(defn params-thru-middleware [routes]
+  (-> @routes
       wrap-params))
 
-(defn start-server [port]
-  (run-server (params-thru-middleware) {:port port}))
+(defn start-server [routes port]
+  (run-server (params-thru-middleware routes) {:port port}))
 
-(defn add-handlers [handlers]
-  (swap! ring-handlers compojure/routes handlers))
+(defn add-handlers! [routes handlers]
+  (swap! routes compojure/routes handlers))

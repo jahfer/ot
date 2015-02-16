@@ -20,7 +20,7 @@
                            {:global
                               {:logging-config "./resources/logback-dev.xml"}
                             :websocket {:port 3000}
-                            :editor-web {:url-prefix "/editor"}
+                            :web       {:url-prefix "/editor"}
                             :cassandra {:cluster {:addresses ["127.0.0.1"]
                                                   :keyspace "ot_dev"}}})))
   (alter-var-root #'system tkapp/init)
