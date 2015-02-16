@@ -31,13 +31,13 @@
         (do
           (println "  [...] Confirmed operation roundtrip success")
           (when (seq (:ops (deref (:buffer queue))))
-            (println "poll-incoming updating parent-id")
             (swap! (:buffer queue) assoc :parent-id server-id))
           (swap! (:owned-ids queue) #(vec (remove #{local-id} %)))
           (reset! (:last-client-op queue) [])
           (put! (:confirmation queue) response)
           (put! (:recv-ids queue) {:server-id server-id}))
-        (put! (:inbound queue) data)))))
+        (put! (:inbound queue) data)))
+    (recur)))
 
 (defn- set-last-op! [last-op-atom op]
   (reset! last-op-atom op))
