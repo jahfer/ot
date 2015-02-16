@@ -3,9 +3,6 @@
 
 ## Usage
 ```
-Compile and watch cljs:
-$ lein client
-
 Start server:
 $ lein server
 
@@ -13,6 +10,10 @@ Start server using reloaded pattern:
 $ lein repl
 $ (go) # change code...
 $ (reset)
+
+Compile and watch cljs + cljx:
+$ lein client # runs tests on compile!
+$ lein cljx auto
 
 Run tests:
 $ lein cleantest
