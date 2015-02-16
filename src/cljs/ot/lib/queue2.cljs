@@ -21,13 +21,12 @@
 (defn- poll-incoming [queue]
   (go-loop []
     (let [response (<! (get-in queue [:ws :received]))
-          _ (println "poll-incoming")
           reader (transit/reader :json {:handlers transit-handlers/read-handlers})
           data (transit/read reader response)
           local-id (:local-id data)
           server-id (:id data)
           owned-ids (:owned-ids queue)]
-      (println "[iq ->] Received operation from server")
+      (println "[iq ->] Received operation from server" local-id)
       (if (util/in? @owned-ids local-id)
         (do
           (println "  [...] Confirmed operation roundtrip success")
@@ -55,13 +54,12 @@
     (go-loop []
       (<! ackc)
       (<! buffer-has-item)
-      (println "Have operation to send")
       (let [out (flush-buffer! buffer)]
         (set-last-op! (:last-client-op queue) (:ops out))
         (when (seq (:ops out))
           (let [writer (transit/writer :json {:handlers transit-handlers/write-handlers})
                 serialized (transit/write writer out)]
-            (println "[bq <~] Sending operations to the server")
+            (println "[bq <~] Sending operations to the server" (:local-id out))
             (swap! (:owned-ids queue) #(conj % (:local-id out)))
             (ws/send (:ws queue) serialized)))
         (recur)))
