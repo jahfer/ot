@@ -32,6 +32,7 @@
                  ;; client
                  [org.clojure/clojurescript "0.0-2740"]
                  [jayq "2.5.2"]
+                 [secretary "1.2.1"]
                  [prismatic/dommy "1.0.0"]
                  [org.omcljs/om "0.8.7"]
                  [cljsjs/react "0.12.2-5"]
@@ -85,7 +86,10 @@
                                       "resources/public/js/vendor/jquery-1.10.2.min.js"
                                       "resources/public/js/dev/main.js"]}}
   
-  :aliases {"server" ["do" "cljx" "once," "trampoline" "run" "--bootstrap-config" "resources/bootstrap.cfg" "--config" "resources/config.conf"]
+  :aliases {"server" ["do" "cljx" "once,"
+                      "trampoline" "run"
+                      "--bootstrap-config" "resources/bootstrap.cfg"
+                      "--config" "resources/config.conf"]
             "client" ["do" "cljx" "once," "cljsbuild" "auto" "test"]
             "cleantest" ["do" "clean,"
                          "cljx" "once,"

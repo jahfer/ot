@@ -7,23 +7,26 @@
    [:title title]
    (hic-p/include-css "/css/style.css")])
 
-(def header-links
-  [:div#header-links
-   "[ "
-   [:a {:href "/"} "Home"]
-   " | "
-   [:a {:href "/edit"} "Edit"]
-   " ]"])
+(def om-scripts
+  (hic-p/include-js "/js/vendor/react-0.8.0.js"
+                    "/js/vendor/jquery-1.10.2.min.js"
+                    "/js/dev/main.js"))
 
-(defn document-page []
+(defn document-edit []
+  (hic-p/html5
+   (gen-page-head (str "OT Editor - Read-only"))
+   [:body
+    [:div#app]
+    om-scripts
+    [:script "goog.require('ot.routes')"]]))
+
+(defn document-show []
   (hic-p/html5
    (gen-page-head (str "OT Editor"))
    [:body
     [:div#app]
-    (hic-p/include-js "/js/vendor/react-0.8.0.js")
-    (hic-p/include-js "/js/vendor/jquery-1.10.2.min.js")
-    (hic-p/include-js "/js/dev/main.js")
-    [:script "goog.require('ot.core')"]]))
+    om-scripts
+    [:script "goog.require('ot.routes')"]]))
 
 (defn iframed-test []
   (hic-p/html5

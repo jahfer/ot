@@ -23,10 +23,10 @@
   (route/not-found "Not found"))
 
 (defroutes editor-routes
-  (GET "/" [] (views/document-page))
   (GET "/ws" [] async-handler)
   (GET "/iframe" [] (views/iframed-test))
-  (GET "/documents/:id" [id] (views/document-page)))
+  (GET "/documents/:id" [id] (views/document-show))
+  (GET "/documents/:id/edit" [id] (views/document-edit)))
 
 (defn- write-message [msg]
   (let [out (ByteArrayOutputStream. 4096)

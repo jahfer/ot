@@ -4,10 +4,12 @@
             [cljs.core.async :refer [put! chan <!]]
             [ot.lib.queue2 :as q2]
             [ot.lib.util :as util]
+            [ot.routes :as routes]
             [ot.operations :as operations]
             [ot.documents :as documents]
             [ot.transforms :as transforms])
-  (:require-macros [cljs.core.async.macros :refer [go go-loop alt!]]))
+  (:require-macros [cljs.core.async.macros :refer [go go-loop alt!]]
+                   [jayq.macros :refer [let-ajax]]))
 
 (enable-console-print!)
 
@@ -57,49 +59,68 @@
       (update-text! owner op)
       (put! comm op))))
 
-(defn editor-view [app owner]
+(defn apply-operation! [owner queue id ops]
+  (let [last-op (deref (:last-client-op queue))]
+    (if-not (seq last-op)
+      ;; client hasn't performed actions, can apply cleanly
+      (update-text! owner ops)
+      ;; client in a buffer state
+      ;; need to convert incoming to match what server produces
+      (let [[a'' c''] (transforms/transform last-op ops)
+            buf (:ops (deref (:buffer queue)))]
+        (if (seq buf)
+          ;; rebase client queue on server op
+          (let [[buf' ops'] (transforms/transform buf c'')]
+            (swap! (:buffer queue) assoc :ops buf')
+            (update-text! owner ops'))
+          ;; nothing to rebase
+          (update-text! owner c''))
+        ;; keep up to date with transformations
+        (reset! (:last-client-op queue) a'')))))
+
+(defn write-parent-id! [owner id]
+  (om/set-state! owner :parent-id id))
+
+(defn reset-local-id! [owner]
+  (om/set-state! owner :local-id (util/unique-id)))
+
+;; ---------------------------------------------------------------------
+
+(defn editor-com [app owner]
   (reify
+    om/IDisplayName (display-name [_] "Editor")
     om/IInitState
     (init-state [this]
       {:comm (chan)
        :local-id (util/unique-id)
-       :caret 0})
+       :caret 0
+       :parent-id nil})
     om/IWillMount
     (will-mount [this]
-      (let [comm (om/get-state owner :comm)
-            queue (om/get-state owner :queue)]
+      (let [documentid (get-in app [:navigation-data :documentid])
+            comm  (om/get-state owner :comm)
+            queue (get-in app [:comms :queue])]
+        (let-ajax [remote-doc {:url (str (routes/document-path {:id documentid}) ".json")}]
+                  (om/set-state! owner :text (:doc remote-doc))
+                  (om/set-state! owner :parent-id (:version remote-doc)))
         (go-loop []
+          ;; outgoing messages
           (let [ops (<! comm)]
-            (om/set-state! owner :local-id (util/unique-id))
-            (q2/send queue {:local-id (om/get-state owner :local-id)
+            (reset-local-id! owner)
+            (q2/send queue {:local-id  (om/get-state owner :local-id)
                             :parent-id (om/get-state owner :parent-id)
                             :ops ops})
             (recur)))
         (go-loop []
-          (let [{:keys [id ops]} (<! (:inbound queue))
-                last-op (deref (:last-client-op queue))]
-            (if (seq last-op)
-              ;; client in a buffer state
-              ;; need to convert incoming to match what server produces
-              (let [[a'' c''] (transforms/transform last-op ops)
-                    buf (:ops (deref (:buffer queue)))]
-                (if (seq buf)
-                  ;; rebase client queue on server op
-                  (let [[buf' ops'] (transforms/transform buf c'')]
-                    (swap! (:buffer queue) assoc :ops buf')
-                    (update-text! owner ops'))
-                  ;; nothing to rebase
-                  (update-text! owner c''))
-                ;; keep up to date with transformations
-                (reset! (:last-client-op queue) a''))
-              ;; client hasn't performed actions, can apply cleanly
-              (update-text! owner ops))
-            ;; acknowledge that we're on the latest parent
-            (om/set-state! owner :parent-id id)
+          ;; incoming messages
+          (let [{:keys [id ops]} (<! (:inbound queue))]
+            (apply-operation! owner queue id ops)
+            (write-parent-id! owner id)
             (recur)))
         (go-loop []
+          ;; roundrip ack
           (let [{:keys [server-id]} (<! (:recv-ids queue))]
-            (om/set-state! owner :parent-id server-id)
+            (write-parent-id! owner server-id)
             (recur)))))
     om/IDidUpdate
     (did-update [this prev-props prev-state]
