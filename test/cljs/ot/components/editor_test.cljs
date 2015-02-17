@@ -16,7 +16,7 @@
     (reify
       om/IRender
       (render [_]
-        (om/build editor/editor-view (:editor app)
+        (om/build editor/editor-com (:editor app)
                   {:init-state init-state})))))
 
 (deftest ^:async editor-renders?
