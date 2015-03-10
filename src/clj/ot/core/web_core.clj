@@ -25,8 +25,9 @@
 (defroutes editor-routes
   (GET "/ws" [] async-handler)
   (GET "/iframe" [] (views/iframed-test))
-  (GET "/documents/:id" [id] (views/document-show))
-  (GET "/documents/:id/edit" [id] (views/document-edit)))
+  (GET "/documents" [] (views/document))
+  (GET "/documents/:id" [id] (views/document))
+  (GET "/documents/:id/edit" [id] (views/document)))
 
 (defn- write-message [msg]
   (let [out (ByteArrayOutputStream. 4096)
@@ -34,10 +35,8 @@
     (transit/write writer msg)
     (.toString out)))
 
-(defn respond-with-doc [id text version]
-  (-> (res/response (pr-str {:id id
-                             :doc text
-                             :version version}))
+(defn edn-response [data]
+  (-> (res/response (pr-str data))
       (res/content-type "application/edn")))
 
 (defn async-handler [req]

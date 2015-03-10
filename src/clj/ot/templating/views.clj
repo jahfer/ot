@@ -12,15 +12,7 @@
                     "/js/vendor/jquery-1.10.2.min.js"
                     "/js/dev/main.js"))
 
-(defn document-edit []
-  (hic-p/html5
-   (gen-page-head (str "OT Editor - Read-only"))
-   [:body
-    [:div#app]
-    om-scripts
-    [:script "goog.require('ot.routes')"]]))
-
-(defn document-show []
+(defn document []
   (hic-p/html5
    (gen-page-head (str "OT Editor"))
    [:body

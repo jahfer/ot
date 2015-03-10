@@ -1,13 +1,13 @@
 (ns ot.components.app
-  (:require [ot.components.editor :as editor]
-            [ot.components.doc-render :as doc-render]
+  (:require [ot.components.documents :as documents]
             [om.core :as om :include-macros true]
             [om.dom :as dom]))
 
 (defn dominant-component [app-state owner]
   (condp = (get-in app-state [:navigation-point])
-    :document-edit editor/editor-com
-    :document-show doc-render/doc-render-com))
+    :document-index documents/document-index
+    :document-edit documents/document-container
+    :document-show documents/document-container))
 
 (defn app [app owner opts]
   (reify
