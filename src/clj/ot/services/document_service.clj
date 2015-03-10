@@ -6,9 +6,10 @@
             [puppetlabs.trapperkeeper.app :refer [get-service]]))
 
 (defprotocol DocumentService
-  (request-history  [this documentid])
-  (request-document [this documentid])
-  (submit-request   [this data]))
+  (request-history   [this documentid])
+  (request-document  [this documentid])
+  (request-documents [this])
+  (submit-request    [this data]))
 
 (tk/defservice document-service
   DocumentService
@@ -21,6 +22,8 @@
          (log/debug "Starting DocumentService")
          context)
   (stop [this context] context)
+  (request-documents [this]
+                     (core/request-documents DocumentStorageService))
   (request-history  [this documentid])
   (request-document [this documentid]
                     (core/request-document DocumentStorageService documentid))

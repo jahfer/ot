@@ -63,6 +63,10 @@
     (print-events @history)
     cleaned-data))
 
+(defn request-documents [document-store]
+  (let [select-fn (:select document-store)]
+    (select-fn "deltas" [(columns (distinct* :documentid))])))
+
 (defn request-document [document-store documentid]
   (let [select-fn (:select document-store)
         deltas (select-fn "deltas"

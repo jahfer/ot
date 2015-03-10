@@ -12,7 +12,7 @@
   WebService
   [[:ConfigService get-in-config]
    [:WebsocketService add-ring-handler]
-   [:DocumentService submit-request request-document]]
+   [:DocumentService submit-request request-document request-documents]]
   (init [this context]
         (log/debug "Initializing WebService")
         (let [url-prefix (get-in-config [:web :url-prefix])
@@ -21,8 +21,12 @@
                              (GET "/editor/documents/:id.json" [id]
                                   (let [uuid (java.util.UUID/fromString id)]
                                     (match (request-document uuid)
-                                           [:text text :deltaid deltaid] (core/respond-with-doc id text deltaid)
-                                           :else (str "Document" id "not found"))))))
+                                           [:text text :deltaid deltaid] (core/edn-response {:id id
+                                                                                             :text text
+                                                                                             :deltaid deltaid})
+                                           :else (str "Document" id "not found"))))
+                             (GET "/editor/documents.json" [id]
+                                  (core/edn-response {:documents (request-documents)}))))
           (add-ring-handler context-app)
           (add-ring-handler core/app-routes)
           context))
