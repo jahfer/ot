@@ -101,7 +101,7 @@
             comm  (om/get-state owner :comm)
             queue (get-in app [:comms :queue])]
         (let-ajax [remote-doc {:url (str (routes/document-path {:id documentid}) ".json")}]
-                  (om/set-state! owner :text (:doc remote-doc))
+                  (om/set-state! owner :text (:text remote-doc))
                   (om/set-state! owner :parent-id (:version remote-doc)))
         (go-loop []
           ;; outgoing messages

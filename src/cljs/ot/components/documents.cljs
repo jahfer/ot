@@ -47,7 +47,7 @@
       (let [documentid (get-in app [:navigation-data :documentid])]
         (om/update! app [:documentid] documentid)
         (let-ajax [remote-doc {:url (str (routes/document-path {:id documentid}) ".json")}]
-                  (om/update! app [:text] (:doc remote-doc)))))
+                  (om/update! app [:text] (:text remote-doc)))))
     om/IRender
     (render [_]
       (if (get-in app [:navigation-data :editable])
