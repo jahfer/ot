@@ -17,6 +17,11 @@ body {
   letter-spacing: 0.05em;
 }
 
+.loading {
+  margin: 40px auto 0;
+  display: block;
+}
+
 #editor {
   width: 500px;
   height: 150px;

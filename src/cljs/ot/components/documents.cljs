@@ -15,10 +15,9 @@
     (render [_]
       (dom/div #js {:className "document"}
                (dom/div nil text)
-               (dom/button #js {:onClick (fn [_]
-                                           (set! (.-href js/location)
-                                                 (routes/document-edit-path {:id documentid})))}
-                           "Edit")))))
+               (dom/a #js
+                      {:href (routes/document-edit-path {:id documentid})}
+                      "Edit")))))
 
 (defn document-list [documents]
   (reify
@@ -26,14 +25,18 @@
     om/IRender
     (render [_]
       (apply dom/ul nil
-       (map #(dom/li nil (:documentid %)) documents)))))
+             (map #(dom/li nil
+                           (dom/a #js
+                                  {:href (routes/document-path {:id (:documentid %)})}
+                                  (:documentid %)))
+                  documents)))))
 
 (defn document-index [app owner]
   (reify
     om/IDisplayName (display-name [_] "DocumentIndex")
     om/IWillMount
     (will-mount [this]
-      (let-ajax [documents {:url (str (routes/document-index-path) ".json")}]
+      (let-ajax [documents {:url (str (routes/documents-path) ".json")}]
                 (om/update! app [:documents] (:documents documents))))
     om/IRender
     (render [_]

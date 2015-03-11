@@ -12,7 +12,7 @@
     (open! nav-ch :document-edit {:documentid id :editable true}))
   (defroute document-path "/editor/documents/:id" [id]
     (open! nav-ch :document-show {:documentid id :editable false}))
-  (defroute document-index-path "/editor/documents" []
+  (defroute documents-path "/editor/documents" []
     (open! nav-ch :document-index)))
 
 (defn define-routes! [state]
