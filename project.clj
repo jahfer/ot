@@ -5,8 +5,8 @@
             :url "http://www.eclipse.org/legal/epl-v10.html"}
 
   :plugins [[com.cemerick/clojurescript.test "0.3.3"]
-            [com.keminglabs/cljx "0.5.0"]
-            [lein-cljsbuild "1.0.4"]]
+            [com.keminglabs/cljx "0.6.0"]
+            [lein-cljsbuild "1.0.5"]]
 
   :dependencies [;; general
                  [org.clojure/clojure "1.6.0"]
@@ -20,8 +20,8 @@
                  [hiccup "1.0.5"]
                  [joplin.core "0.2.7"]
                  [joplin.cassandra "0.2.7"]
-                 [clojurewerkz/cassaforte "2.0.0"]
-                 [com.cognitect/transit-clj "0.8.259"]
+                 [clojurewerkz/cassaforte "2.0.0" :exclusions [com.google.guava/guava]]
+                 [com.cognitect/transit-clj "0.8.269"]
                  [org.clojure/tools.nrepl "0.2.3"]
                  [org.clojure/tools.cli "0.3.1"]
                  [puppetlabs/trapperkeeper "1.0.1"]
@@ -30,16 +30,16 @@
                  [org.clojure/tools.logging "0.2.6"]
                  [org.clojure/tools.namespace "0.2.9"]
                  ;; client
-                 [org.clojure/clojurescript "0.0-2740"]
-                 [jayq "2.5.2"]
-                 [secretary "1.2.1"]
+                 [org.clojure/clojurescript "0.0-3126"]
+                 [jayq "2.5.4"]
+                 [secretary "1.2.2"]
                  [prismatic/dommy "1.0.0"]
-                 [org.omcljs/om "0.8.7"]
-                 [cljsjs/react "0.12.2-5"]
-                 [com.cognitect/transit-cljs "0.8.192"]]
+                 [org.omcljs/om "0.8.8"]
+                 [cljsjs/react "0.13.1-0"]
+                 [com.cognitect/transit-cljs "0.8.205"]]
 
   :main puppetlabs.trapperkeeper.main
-  
+
   :ring {:handler ot.handler/app}
 
   :repl-options {:init-ns ot.repl}
@@ -85,7 +85,7 @@
               :test-commands {"unit" ["slimerjs" :runner
                                       "resources/public/js/vendor/jquery-1.10.2.min.js"
                                       "resources/public/js/dev/main.js"]}}
-  
+
   :aliases {"server" ["do" "cljx" "once,"
                       "trampoline" "run"
                       "--bootstrap-config" "resources/bootstrap.cfg"
@@ -94,5 +94,4 @@
             "cleantest" ["do" "clean,"
                          "cljx" "once,"
                          "trampoline" "test,"
-                         "cljsbuild" "test"]
-            "cljs-repl" ["trampoline" "cljsbuild" "repl-listen"]})
+                         "cljsbuild" "test"]})
