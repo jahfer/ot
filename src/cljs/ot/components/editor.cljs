@@ -102,7 +102,7 @@
             queue (get-in app [:comms :queue])]
         (let-ajax [remote-doc {:url (str (routes/document-path {:id documentid}) ".json")}]
                   (om/set-state! owner :text (:text remote-doc))
-                  (om/set-state! owner :parent-id (:version remote-doc)))
+                  (om/set-state! owner :parent-id (:deltaid remote-doc)))
         (go-loop []
           ;; outgoing messages
           (let [ops (<! comm)]
@@ -135,5 +135,3 @@
                                   :onClick #(om/set-state! owner :caret (caret-position owner))
                                   :onKeyPress #(handle-keypress % owner state)
                                   :onKeyDown #(handle-keydown % owner state)})))))
-
-

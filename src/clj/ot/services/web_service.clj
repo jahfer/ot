@@ -24,7 +24,7 @@
                                            [:text text :deltaid deltaid] (core/edn-response {:id id
                                                                                              :text text
                                                                                              :deltaid deltaid})
-                                           :else (str "Document" id "not found"))))
+                                           :else (str "Document " id " not found"))))
                              (GET "/editor/documents.json" [id]
                                   (core/edn-response {:documents (request-documents)}))))
           (add-ring-handler context-app)

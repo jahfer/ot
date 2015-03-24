@@ -13,7 +13,7 @@
   (defroute document-path "/editor/documents/:id" [id]
     (open! nav-ch :document-show {:documentid id :editable false}))
   (defroute documents-path "/editor/documents" []
-    (open! nav-ch :document-index)))
+    (open! nav-ch :document-index {})))
 
 (defn define-routes! [state]
   (let [nav-ch (get-in @state [:comms :nav])]

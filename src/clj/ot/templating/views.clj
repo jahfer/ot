@@ -24,5 +24,5 @@
   (hic-p/html5
    (gen-page-head "OT Editor - Testing")
    [:body
-    [:iframe {:src "http://localhost:3000/editor" :class "test-editor"}]
-    [:iframe {:src "http://localhost:3000/editor" :class "test-editor"}]]))
+    [:iframe {:src "http://localhost:3000/editor/documents/70ef8740-9237-11e4-aec4-054abea3cfa4/edit" :class "test-editor"}]
+    [:iframe {:src "http://localhost:3000/editor/documents/70ef8740-9237-11e4-aec4-054abea3cfa4/edit" :class "test-editor"}]]))
