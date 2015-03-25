@@ -15,7 +15,6 @@
 
 (defn- tag-operation [data]
   (let [documentid #uuid "70ef8740-9237-11e4-aec4-054abea3cfa4"]
-    (log/debug @deltaids)
     (swap! deltaids update-in [documentid] inc')
     (assoc data :id (get @deltaids documentid))))
 
@@ -47,6 +46,7 @@
         (let [server-ops (reduce composers/compose ops-since-id)]
           (update-in data [:ops] #(first (transforms/transform % server-ops))))
         data))
+
     (do
       (log/error "Rejected operation" parent-id  "Not parented on known history")
       (log/error new-base))))
@@ -55,12 +55,26 @@
   (clojure.pprint/print-table [:id :parent-id :local-id :ops]
                               (map #(update-in % [:ops] operations/print-ops) coll)))
 
+(defn- tap [args fn]
+  (fn args)
+  args)
+
+(defn- print-state [data state]
+  (let [pretty (update-in data [:ops] operations/print-ops)]
+    (clojure.pprint/pprint (assoc (select-keys pretty [:parent-id :local-id :ops]) :state state))
+    (println)))
+
+;; Public Methods
+
 (defn submit-request [document-store opdata]
   (let [cleaned-data (-> opdata
+                         (tap #(print-state % :incoming))
                          (rebase-incoming @history)
+                         (tap #(when-not (= (:ops %) (:ops opdata)) (print-state % :rebased)))
                          (tag-operation))]
     (persist! document-store cleaned-data)
     (print-events @history)
+    (println "\n" (clojure.string/join (take 100 (repeat "#"))) "\n")
     cleaned-data))
 
 (defn request-documents [document-store]
