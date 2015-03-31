@@ -13,6 +13,7 @@
                  [org.clojure/core.async "0.1.346.0-17112a-alpha"]
                  [org.clojure/core.match "0.2.1"]
                  [com.cemerick/piggieback "0.1.5"] ; temporary for CLJX
+                 [org.clojure/test.check "0.7.0"]
                  ;; server
                  [ring/ring-core "1.3.1"]
                  [compojure "1.2.1"]
