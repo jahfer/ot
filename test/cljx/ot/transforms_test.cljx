@@ -1,19 +1,19 @@
 (ns ot.transforms-test
-  (:use [ot.transforms])
-  (:require #+clj [clojure.test :as t
-                   :refer (is deftest with-test run-tests testing)]
-            #+cljs [cemerick.cljs.test :as t]
+  (:use [ot.transforms :only [transform compress insert retain]])
+  (:require #+clj [clojure.test :as t :refer (is deftest testing)]
+            #+cljs [cemerick.cljs.test :as t :refer-macros [is deftest testing]]
+            #+clj [clojure.test.check :as tc]
+            #+cljs [cljs.test.check :as tc]
+            #+clj [clojure.test.check.generators :as gen]
+            #+cljs [cljs.test.check.generators :as gen]
+            #+clj [clojure.test.check.properties :as prop]
+            #+cljs [cljs.test.check.properties :as prop :refer-macros [for-all]]
+            #+clj [clojure.test.check.clojure-test :refer [defspec]]
+            #+cljs [cljs.test.check.cljs-test :refer-macros [defspec]]
+            #+clj [clojure.core.match :refer [match]]
+            #+cljs [cljs.core.match :refer-macros [match]]
             [ot.operations :as operations :refer [oplist ->Op]]
-            [ot.documents :as documents]
-
-            [clojure.test.check :as tc]
-            [clojure.test.check.generators :as gen]
-            [clojure.test.check.properties :as prop]
-            [clojure.test.check.clojure-test :refer [defspec]]
-            [clojure.core.match :refer [match]])
-
-  #+cljs (:require-macros [cemerick.cljs.test
-                           :refer (is deftest with-test run-tests testing test-var)]))
+            [ot.documents :as documents]))
 
 ;; -----
 

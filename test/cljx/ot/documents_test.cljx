@@ -1,11 +1,8 @@
 (ns ot.documents-test
-  (:require #+clj [clojure.test :as t
-                   :refer (is deftest with-test run-tests testing)]
-            #+cljs [cemerick.cljs.test :as t]
+  (:require #+clj [clojure.test :as t :refer (is deftest testing)]
+            #+cljs [cemerick.cljs.test :as t :refer-macros [is deftest testing]]
             [ot.operations :as operations]
-            [ot.documents :as documents])
-  #+cljs (:require-macros [cemerick.cljs.test
-                           :refer (is deftest with-test run-tests testing test-var)]))
+            [ot.documents :as documents]))
 
 (def document "ram")
 

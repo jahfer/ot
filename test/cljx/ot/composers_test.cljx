@@ -1,11 +1,8 @@
 (ns ot.composers-test
-  (:require #+clj [clojure.test :as t
-                   :refer (is deftest with-test run-tests testing)]
-            #+cljs [cemerick.cljs.test :as t]
+  (:require #+clj [clojure.test :as t :refer (is deftest testing)]
+            #+cljs [cemerick.cljs.test :as t :refer-macros [is deftest testing]]
             [ot.operations :as o]
-            [ot.composers :as composers])
-  #+cljs (:require-macros [cemerick.cljs.test
-                           :refer (is deftest with-test run-tests testing test-var)]))
+            [ot.composers :as composers]))
 
 (deftest compose-test
   (testing "Composing two lists of operations results in a single list of all combined operations"

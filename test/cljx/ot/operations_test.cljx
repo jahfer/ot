@@ -1,10 +1,7 @@
 (ns ot.operations-test
-  (:require #+clj [clojure.test :as t
-                   :refer (is deftest with-test run-tests testing)]
-            #+cljs [cemerick.cljs.test :as t]
-            [ot.operations :as operations])
-  #+cljs (:require-macros [cemerick.cljs.test
-                           :refer (is deftest with-test run-tests testing test-var)]))
+  (:require #+clj [clojure.test :as t :refer (is deftest testing)]
+            #+cljs [cemerick.cljs.test :as t :refer-macros [is deftest testing]]
+            [ot.operations :as operations]))
 
 (def document "go")
 (def op-tom (operations/oplist :ret 2 :ins "a"))

@@ -3,8 +3,7 @@
   (:require [ot.operations :as o]
             [ot.transforms :as transforms]
             [clojure.string :as str]
-            #+cljs [cljs.core.match])
-  #+cljs (:require-macros [cljs.core.match.macros :refer [match]]))
+            #+cljs [cljs.core.match :refer-macros [match]]))
 
 (defn apply-ins [{c :val} doc]
   (str c doc))

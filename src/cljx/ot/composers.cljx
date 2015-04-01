@@ -2,12 +2,11 @@
   #+clj (:use[clojure.core.match :only (match)])
   (:require [ot.operations :as o]
             [ot.transforms :as t]
-            #+cljs [cljs.core.match])
-  #+cljs (:require-macros [cljs.core.match.macros :refer [match]]))
+            #+cljs [cljs.core.match :refer-macros [match]]))
 
 #+cljs (enable-console-print!)
 
-(defmulti compose-ops 
+(defmulti compose-ops
   (fn [ops1 ops2 _]
     (let [op1 (first ops1)
           op2 (first ops2)]
