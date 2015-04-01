@@ -7,8 +7,6 @@
             [ot.documents :as documents]
 
             [clojure.test.check :as tc]
-            [miner.herbert :as h]
-            [miner.herbert.generators :as hg]
             [clojure.test.check.generators :as gen]
             [clojure.test.check.properties :as prop]
             [clojure.test.check.clojure-test :refer [defspec]]
@@ -87,14 +85,18 @@
     (is (= (documents/apply-ops doc-a b') (documents/apply-ops doc-b a')))))
 
 (deftest testcheck-regression-tests
-  (testing "Delete transform regression"
-    (let [a (oplist :ret 1 :ins "m" :ret 3) ; "hmell"
-          b (oplist :del 2 :del 1 :ret 1) ; "l"
-          expected-a' (oplist :ret 1 :ins "m" :ret 1)
-          expected-b' (oplist :ret 1 :del 1 :del 1 :ret 1)]
-      (assert-transforms "hell" a b expected-a' expected-b'))))
-
-;;(transform (oplist :ret 1 :ins "m" :ret 3) (oplist :del 3 :ret 1))
+  (testing "multi-char delete + unequal-length retain regression"
+    (let [a (oplist :ret 1 :ins "i" :ret 2)
+          b (oplist :del 2 :ret 1)
+          expected-a' (oplist :ins "i" :ret 1)
+          expected-b' (oplist :del 1 :ret 1 :del 1 :ret 1)]
+      (assert-transforms "hya" a b expected-a' expected-b')))
+  (testing "competing deletes of different length regression"
+    (let [a (oplist :del 2 :ret 1) ; y
+          b (oplist :del 1 :ret 2) ; ey
+          expected-a' (oplist :del 1 :ret 1)
+          expected-b' (oplist :ret 1)]
+      (assert-transforms "hey" a b expected-a' expected-b')))) ; y
 
 (deftest insert-test
   (testing "insert will produce the correct resulting pair"

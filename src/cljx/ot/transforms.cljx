@@ -48,23 +48,23 @@
      (let [val1 (:val (first ops1))
            val2 (:val (first ops2))]
        (cond
-         (> (- val1) (- val2)) [(update-in (vec ops1) [0 :val] #(- % val2)) (rest ops2) ops']
+         (> val1 val2) [(update-in (vec ops1) [0 :val] #(- % val2)) (rest ops2) ops']
          (= val1 val2) [(rest ops1) (rest ops2) ops']
-         :else [(rest ops1) (update-in (vec ops2) [0 :val] #(- % val1))]))
+         :else [(rest ops1) (update-in (vec ops2) [0 :val] #(- % val1)) ops']))
    (and (o/delete? (first ops1)) (o/retain? (first ops2)))
      (let [val1 (:val (first ops1))
            val2 (:val (first ops2))]
        (cond
          (> val1 val2) [(update-in (vec ops1) [0 :val] #(- % val2)) (rest ops2) (o/assoc-op (first ops2) ops')]
          (= val1 val2) [(rest ops1) (rest ops2) [(conj (first ops') (first ops1)) (second ops')]]
-         :else [(rest ops1) (update-in (vec ops2) [0 :val] #(- % val1)) (o/assoc-op (first ops1) ops')]))
+         :else [(rest ops1) (update-in (vec ops2) [0 :val] #(- % val1)) [(conj (first ops') (first ops1)) (second ops')]]))
    (and (o/retain? (first ops1)) (o/delete? (first ops2)))
      (let [val1 (:val (first ops1))
            val2 (:val (first ops2))]
        (cond
          (> val1 val2) [(update-in (vec ops1) [0 :val] #(- % val2)) (rest ops2) [(first ops') (conj (second ops') (first ops2))]]
          (= val1 val2) [(rest ops1) (rest ops2) [(first ops') (conj (second ops') (first ops2))]]
-         :else [(rest ops1) (update-in (vec ops2) [0 :val] #(- % val1)) [(conj (first ops') (first ops1)) (second ops')]]))
+         :else [(rest ops1) (update-in (vec ops2) [0 :val] #(- % val1)) [(first ops') (conj (second ops') (o/->Op :del val1))]]))
    :else
      (do
        (println "no cond found")
