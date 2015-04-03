@@ -27,8 +27,7 @@
   (om/root app/app state {:target container}))
 
 (defn main [state]
-  (let [container (.getElementById js/document "app")
-        nav-ch (get-in @state [:comms :nav])]
+  (let [nav-ch (get-in @state [:comms :nav])]
     (go-loop []
       (let [[nav-point args] (<! nav-ch)]
         (swap! state (fn [s] (-> s
@@ -37,6 +36,8 @@
         (recur)))
     (routes/define-routes! state)
     (secretary/dispatch! (.-pathname js/location))
-    (install-om state container)))
+    (if-let [container (.getElementById js/document "app")]
+      (install-om state container)
+      (throw (js/Error. "Container #app not found!")))))
 
 (ready [] (main app-state))

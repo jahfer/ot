@@ -79,8 +79,7 @@
                                                "resources/public/js/dev/main.js"]
                               :compiler {:output-to "resources/public/js/dev/main.js"
                                          :output-dir "resources/public/js/dev"
-                                         :optimizations :whitespace
-                                         :pretty-print true
+                                         :optimizations :simple
                                          :source-map "resources/public/js/dev/main.js.map"}}}
 
               :test-commands {"unit" ["slimerjs" :runner

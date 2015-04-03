@@ -1,13 +1,11 @@
 (ns ot.components.editor-test
-  (:require [cemerick.cljs.test :as t]
+  (:require [cemerick.cljs.test :as t :refer-macros [is deftest testing done]]
             [dommy.core :as dommy :refer-macros [sel1]]
             [om.core :as om :include-macros true]
             [ot.lib.test-util :as util]
             [ot.operations :as operations]
             [ot.transforms :as transforms]
-            [ot.components.editor :as editor])
-  (:require-macros [cemerick.cljs.test
-                    :refer (is deftest testing done)]))
+            [ot.components.editor :as editor]))
 
 (enable-console-print!)
 
