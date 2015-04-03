@@ -1,68 +1,13 @@
 (ns ot.transforms-test
   (:use [ot.transforms :only [transform compress insert retain]])
   (:require #+clj [clojure.test :as t :refer (is deftest testing)]
-            #+cljs [cemerick.cljs.test :as t :refer-macros [is deftest testing]]
-            #+clj [clojure.test.check :as tc]
-            #+cljs [cljs.test.check :as tc]
-            #+clj [clojure.test.check.generators :as gen]
-            #+cljs [cljs.test.check.generators :as gen]
             #+clj [clojure.test.check.properties :as prop]
             #+cljs [cljs.test.check.properties :as prop :refer-macros [for-all]]
             #+clj [clojure.test.check.clojure-test :refer [defspec]]
             #+cljs [cljs.test.check.cljs-test :refer-macros [defspec]]
-            #+clj [clojure.core.match :refer [match]]
-            #+cljs [cljs.core.match :refer-macros [match]]
+            [ot.lib.test-check-helper :as tch]
             [ot.operations :as operations :refer [oplist ->Op]]
             [ot.documents :as documents]))
-
-;; -----
-
-(defn len [op]
-  (match [op]
-         [{:type :ret :val v}] v
-         [{:type :ins :val v}] 0
-         [{:type :del :val v}] v))
-
-(def ins-op-gen
-  (gen/fmap (partial apply ->Op)
-            (gen/tuple (gen/return :ins)
-                       gen/char-alpha)))
-
-(def del-or-ret-op-gen
-  (gen/fmap (partial apply ->Op)
-            (gen/tuple (gen/elements [:ret :del])
-                       (gen/such-that #(not= % 0) gen/pos-int))))
-
-(def op-gen
-  (gen/one-of [ins-op-gen del-or-ret-op-gen]))
-
-(def oplist-gen
-  (gen/not-empty (gen/vector op-gen)))
-
-(def oplist-pair-gen
-  (gen/fmap
-   (fn [[list-a list-b :as lists]]
-     (let [diff (- (reduce + (map len list-a)) (reduce + (map len list-b)))]
-       (cond
-         (= 0 diff)  (map compress lists)
-         (pos? diff) (map compress [list-a (conj list-b (->Op :ret diff))])
-         (neg? diff) (map compress [list-b (conj list-a (->Op :ret (- diff)))]))))
-   (gen/tuple oplist-gen oplist-gen)))
-
-(last (gen/sample oplist-pair-gen))
-
-(transform (oplist :del 1 :ins \h :del 4 :ins \A :ret 8) (oplist :ret 1 :del 3 :ret 9))
-
-(defspec transform-works-with-even-length-operations
-  100
-  (prop/for-all [[a b] oplist-pair-gen]
-                (let [doc (clojure.string/join (take (reduce + (map len a)) (repeat "a")))
-                      doc-a (documents/apply-ops doc a)
-                      doc-b (documents/apply-ops doc b)
-                      [a' b'] (transform a b)]
-                  (= (documents/apply-ops doc-a b') (documents/apply-ops doc-b a')))))
-
-;; -----
 
 (def document "go")
 
@@ -92,11 +37,20 @@
           expected-b' (oplist :del 1 :ret 1 :del 1 :ret 1)]
       (assert-transforms "hya" a b expected-a' expected-b')))
   (testing "competing deletes of different length regression"
-    (let [a (oplist :del 2 :ret 1) ; y
-          b (oplist :del 1 :ret 2) ; ey
+    (let [a (oplist :del 2 :ret 1)
+          b (oplist :del 1 :ret 2)
           expected-a' (oplist :del 1 :ret 1)
           expected-b' (oplist :ret 1)]
-      (assert-transforms "hey" a b expected-a' expected-b')))) ; y
+      (assert-transforms "hey" a b expected-a' expected-b'))))
+
+(defspec transform-works-with-even-length-operations
+  100
+  (prop/for-all [[a b] tch/oplist-pair-gen]
+                (let [doc (clojure.string/join (take (reduce + (map tch/oplen a)) (repeat "a")))
+                      doc-a (documents/apply-ops doc a)
+                      doc-b (documents/apply-ops doc b)
+                      [a' b'] (transform a b)]
+                  (= (documents/apply-ops doc-a b') (documents/apply-ops doc-b a')))))
 
 (deftest insert-test
   (testing "insert will produce the correct resulting pair"
