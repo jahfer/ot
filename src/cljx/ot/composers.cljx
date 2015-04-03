@@ -8,28 +8,21 @@
 
 (defmulti compose-ops
   (fn [ops1 ops2 _]
-    (let [op1 (first ops1)
-          op2 (first ops2)]
-      (match [(:type op1) (:type op2)]
-             [:del _]    :apply-first
-             [_ :ins]    :apply-second
-             [:ret :ret] :retain
-             [:ins :ret] :insert-and-retain
-             [:ins :del] :insert-and-delete
-             [:ret :del] :retain-and-delete
-             [_ :del]    :apply-second))))
+    (let [first-type (or (-> ops1 first :type) ::o/empty)
+          second-type (or (-> ops2 first :type) ::o/empty)]
+      [first-type second-type])))
 
-(defmethod compose-ops :retain [ops1 ops2 out]
+(defmethod compose-ops [::o/ret ::o/ret] [ops1 ops2 out]
   (let [[ops1 ops2 [result]] (t/retain-ops ops1 ops2)]
     [ops1 ops2 (conj out result)]))
 
-(defmethod compose-ops :apply-first [ops1 ops2 out]
+(defmethod compose-ops [::o/del ::o/operation] [ops1 ops2 out]
   [(rest ops1) ops2 (->> ops1 first (conj out))])
 
-(defmethod compose-ops :apply-second [ops1 ops2 out]
+(defmethod compose-ops [::o/operation ::o/ins] [ops1 ops2 out]
   [ops1 (rest ops2) (->> ops2 first (conj out))])
 
-(defmethod compose-ops :insert-and-retain [ops1 ops2 out]
+(defmethod compose-ops [::o/ins ::o/ret] [ops1 ops2 out]
   (let [ops1 (vec ops1)
         ops2 (vec ops2)]
     (let [ops2 (if (= 1 (get-in ops2 [0 :val]))
@@ -37,26 +30,14 @@
                  (update-in ops2 [0 :val] dec))]
       [(rest ops1) ops2 (conj out (first ops1))])))
 
+(defmethod compose-ops [::o/ins ::o/del] [ops1 ops2 out]
+  [(rest ops1) (rest ops2) out])
 
-                                        ; wtf this doesn't make sense
-                                        ; how do you compare an insert with a delete?!
-(defmethod compose-ops :insert-and-delete [ops1 ops2 out]
-  [(rest ops1) (rest ops2) out]
-  ;; (let [val1 (:val (first ops1))
-  ;;       val2 (:val (first ops2))
-  ;;       ops1' (if (> (count val1) val2) (assoc-in ops1 [0 :val] (- val1 val2)) (rest ops1))
-  ;;       ops2' (if (< (count val1) val2) (assoc-in ops2 [0 :val] (+ val1 val2)) (rest ops2))]
-  ;;   [ops1' ops2' out])
-  )
-(defmethod compose-ops :retain-and-delete [ops1 ops2 out]
+(defmethod compose-ops [::o/ret ::o/del] [ops1 ops2 out]
   (let [del-op (first ops2)]
-    [(rest ops1) (rest ops2) (conj out del-op)])
-  ;; (let [val1 (:val (first ops1))
-  ;;       val2 (:val (first ops2))
-  ;;       ops1' (if (> val1 val2) (assoc-in ops1 [0 :val] (+ val1 val2)) (rest ops1))
-  ;;       ops2' (if (< val1 val2) (assoc-in ops2 [0 :val] (+ val2 val1)) (rest ops2))]
-  ;;   [ops1' ops2' out])
-  )
+    [(rest ops1) (rest ops2) (conj out del-op)]))
+
+(prefer-method compose-ops [::o/del ::o/operation] [::o/operation ::o/ins])
 
 (defn compose [a b]
   (loop [ops1 a, ops2 b, composed []]

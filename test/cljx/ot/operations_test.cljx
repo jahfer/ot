@@ -1,12 +1,12 @@
 (ns ot.operations-test
   (:require #+clj [clojure.test :as t :refer (is deftest testing)]
             #+cljs [cemerick.cljs.test :as t :refer-macros [is deftest testing]]
-            [ot.operations :as operations]))
+            [ot.operations :as o]))
 
 (def document "go")
-(def op-tom (operations/oplist :ret 2 :ins "a"))
+(def op-tom (o/oplist ::o/ret 2 ::o/ins "a"))
 
 (deftest oplist-test
   (testing "Produces a vector of Operations"
-    (let [ops (operations/oplist :ret 5 :ins "a" :ret 3)]
-      (is (= ops [(operations/->Op :ret 5) (operations/->Op :ins "a") (operations/->Op :ret 3)])))))
+    (let [ops (o/oplist ::o/ret 5 ::o/ins "a" ::o/ret 3)]
+      (is (= ops [(o/->Op ::o/ret 5) (o/->Op ::o/ins "a") (o/->Op ::o/ret 3)])))))

@@ -2,6 +2,11 @@
 
 (defrecord Op [type val])
 
+(derive ::ins ::operation)
+(derive ::del ::operation)
+(derive ::ret ::operation)
+(derive ::empty ::operation)
+
 (defn oplist [& operations]
   (mapv #(apply ->Op %) (partition 2 operations)))
 
@@ -15,10 +20,10 @@
   (conj-ops ops new-ops))
 
 (defn insert? [operation]
-  (= :ins (:type operation)))
+  (= ::ins (:type operation)))
 
 (defn retain? [operation]
-  (= :ret (:type operation)))
+  (= ::ret (:type operation)))
 
 (defn delete? [operation]
-  (= :del (:type operation)))
+  (= ::del (:type operation)))

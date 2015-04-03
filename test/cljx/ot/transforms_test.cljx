@@ -6,14 +6,14 @@
             #+clj [clojure.test.check.clojure-test :refer [defspec]]
             #+cljs [cljs.test.check.cljs-test :refer-macros [defspec]]
             [ot.lib.test-check-helper :as tch]
-            [ot.operations :as operations :refer [oplist ->Op]]
+            [ot.operations :as o :refer [oplist ->Op]]
             [ot.documents :as documents]))
 
 (def document "go")
 
-(def op-tom   (oplist :ret 2 :ins "a"))
-(def op-jerry (oplist :ret 2 :ins "t"))
-(def op-barry (oplist :ret 1 :del 1))
+(def op-tom   (oplist ::o/ret 2 ::o/ins "a"))
+(def op-jerry (oplist ::o/ret 2 ::o/ins "t"))
+(def op-barry (oplist ::o/ret 1 ::o/del 1))
 
 (def tom-document
   (str document "a"))
@@ -31,16 +31,16 @@
 
 (deftest testcheck-regression-tests
   (testing "multi-char delete + unequal-length retain regression"
-    (let [a (oplist :ret 1 :ins "i" :ret 2)
-          b (oplist :del 2 :ret 1)
-          expected-a' (oplist :ins "i" :ret 1)
-          expected-b' (oplist :del 1 :ret 1 :del 1 :ret 1)]
+    (let [a (oplist ::o/ret 1 ::o/ins "i" ::o/ret 2)
+          b (oplist ::o/del 2 ::o/ret 1)
+          expected-a' (oplist ::o/ins "i" ::o/ret 1)
+          expected-b' (oplist ::o/del 1 ::o/ret 1 ::o/del 1 ::o/ret 1)]
       (assert-transforms "hya" a b expected-a' expected-b')))
   (testing "competing deletes of different length regression"
-    (let [a (oplist :del 2 :ret 1)
-          b (oplist :del 1 :ret 2)
-          expected-a' (oplist :del 1 :ret 1)
-          expected-b' (oplist :ret 1)]
+    (let [a (oplist ::o/del 2 ::o/ret 1)
+          b (oplist ::o/del 1 ::o/ret 2)
+          expected-a' (oplist ::o/del 1 ::o/ret 1)
+          expected-b' (oplist ::o/ret 1)]
       (assert-transforms "hey" a b expected-a' expected-b'))))
 
 (defspec transform-works-with-even-length-operations
@@ -54,50 +54,50 @@
 
 (deftest insert-test
   (testing "insert will produce the correct resulting pair"
-    (let [[op1 op2] (insert (operations/->Op :ins "a"))]
-      (is (= op1 (->Op :ins "a")))
-      (is (= op2 (->Op :ret 1))))))
+    (let [[op1 op2] (insert (o/->Op ::o/ins "a"))]
+      (is (= op1 (->Op ::o/ins "a")))
+      (is (= op2 (->Op ::o/ret 1))))))
 
 (deftest retain-test
   (testing "retain will return a vec of two retain operations of the same value"
     (let [[a b] (retain 5)]
-      (is (= a (->Op :ret 5)))
-      (is (= b (->Op :ret 5))))))
+      (is (= a (->Op ::o/ret 5)))
+      (is (= b (->Op ::o/ret 5))))))
 
 (deftest transform-test
   (testing "Transforming two operations"
-    (let [expected-a' (oplist :ret 2 :ins "a" :ret 1)
-          expected-b' (oplist :ret 3 :ins "t")]
+    (let [expected-a' (oplist ::o/ret 2 ::o/ins "a" ::o/ret 1)
+          expected-b' (oplist ::o/ret 3 ::o/ins "t")]
             (assert-transforms "Hi" op-tom op-jerry expected-a' expected-b'))))
 
 (deftest delete-test
   (testing "Transforming a delete operation with an insert operation"
-    (let [expected-a' (oplist :ret 1 :ins "a")
-          expected-b' (oplist :ret 1 :del 1 :ret 1)]
+    (let [expected-a' (oplist ::o/ret 1 ::o/ins "a")
+          expected-b' (oplist ::o/ret 1 ::o/del 1 ::o/ret 1)]
       (assert-transforms "Hi" op-tom op-barry expected-a' expected-b')))
 
   (testing "Transforming an insert operation with a delete operation"
-    (let [expected-a' (oplist :ret 1 :del 1 :ret 1)
-          expected-b' (oplist :ret 1 :ins "a")]
+    (let [expected-a' (oplist ::o/ret 1 ::o/del 1 ::o/ret 1)
+          expected-b' (oplist ::o/ret 1 ::o/ins "a")]
       (assert-transforms "Hi" op-barry op-tom expected-a' expected-b')))
 
   (testing "Tranforming two delete operations"
-    (let [expected-a' (oplist :ret 1)
-          expected-b' (oplist :ret 1)]
+    (let [expected-a' (oplist ::o/ret 1)
+          expected-b' (oplist ::o/ret 1)]
       (assert-transforms "Hi" op-barry op-barry expected-a' expected-b')))
 
   (testing "Transforming deletes at different points of the same document"
-    (let [a (oplist :ret 1 :del 1 :ret 2)
-          b (oplist :ret 2 :del 1 :ret 1)
-          expected-a' (oplist :ret 1 :del 1 :ret 1)
-          expected-b' (oplist :ret 1 :del 1 :ret 1)]
+    (let [a (oplist ::o/ret 1 ::o/del 1 ::o/ret 2)
+          b (oplist ::o/ret 2 ::o/del 1 ::o/ret 1)
+          expected-a' (oplist ::o/ret 1 ::o/del 1 ::o/ret 1)
+          expected-b' (oplist ::o/ret 1 ::o/del 1 ::o/ret 1)]
       (assert-transforms "Hi?!" a b expected-a' expected-b'))))
 
 (deftest compress-test
   (testing "#compress will join all neighboring like items"
-    (let [ops1 (oplist :ret 2 :ret 1 :ins "a" :ret 1 :ret 3)
-          ops2 (oplist :ret 1 :ret 1 :ret 1 :ret 1 :ins "b")
+    (let [ops1 (oplist ::o/ret 2 ::o/ret 1 ::o/ins "a" ::o/ret 1 ::o/ret 3)
+          ops2 (oplist ::o/ret 1 ::o/ret 1 ::o/ret 1 ::o/ret 1 ::o/ins "b")
           result1 (compress ops1)
           result2 (compress ops2)]
-      (is (= result1 (oplist :ret 3 :ins "a" :ret 4)))
-      (is (= result2 (oplist :ret 4 :ins "b"))))))
+      (is (= result1 (oplist ::o/ret 3 ::o/ins "a" ::o/ret 4)))
+      (is (= result2 (oplist ::o/ret 4 ::o/ins "b"))))))
