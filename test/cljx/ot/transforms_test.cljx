@@ -1,6 +1,7 @@
 (ns ot.transforms-test
   (:use [ot.transforms :only [transform compress retain]])
   (:require #+clj [clojure.test :as t :refer (is deftest testing)]
+            #+cljs [cemerick.cljs.test :as t :refer-macros [is deftest testing]]
             #+clj [clojure.test.check.properties :as prop]
             #+cljs [cljs.test.check.properties :as prop :refer-macros [for-all]]
             #+clj [clojure.test.check.clojure-test :refer [defspec]]
