@@ -17,14 +17,16 @@
 
 (defn exec-ops [doc ops]
   (let [op (first ops)]
-    (match (:type op)
+    (match (:type op ::o/empty)
            ::o/ins {:tail (apply-ins op doc)
                     :ops (conj (rest ops) (o/->Op ::o/ret 1))}
            ::o/del {:tail (apply-del op doc)
                     :ops (rest ops)}
            ::o/ret (merge (apply-ret op doc) {:ops (rest ops)})
+           ::o/empty {:tail doc
+                      :ops nil}
            :else   {:tail doc
-                    :ops nil})))
+                    :ops (conj (rest ops) (o/->Op ::o/ret 1))})))
 
 (defn apply-ops [document oplist]
   (loop [last-head "", doc document, ops oplist]

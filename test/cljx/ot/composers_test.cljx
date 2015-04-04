@@ -31,3 +31,24 @@
   (testing "Composing two delete actions"
     (let [comp (compose (oplist ::o/ret 3 ::o/del 1) (oplist ::o/ret 2 ::o/del 1))]
       (is (= comp (oplist ::o/ret 2 ::o/del 1 ::o/del 1))))))
+
+
+
+(defmethod ot.composers/compose-ops [::img ::o/ret] [ops1 ops2 out]
+  (let [ops2 (if (= 1 (get-in (vec ops2) [0 :val]))
+               (rest ops2)
+               (update-in (vec ops2) [0 :val] dec))]
+    [(rest ops1) ops2 (conj out (first ops1))]))
+
+(defmethod ot.composers/compose-ops [::img ::o/del] [ops1 ops2 out]
+  [(rest ops1) (rest ops2) out])
+
+(deftest wacky-test
+  (testing "retain over custom operation"
+    (let [comp (compose (oplist ::o/ret 1 ::img "http://google.com/logo.png")
+                        (oplist ::o/ret 2 ::o/ins "b"))]
+      (is (= comp (oplist ::o/ret 1 ::img "http://google.com/logo.png" ::o/ins "b")))))
+  (testing "deleting a custom operation"
+    (let [comp (compose (oplist ::o/ret 1 ::img "http://google.com/logo.png")
+                        (oplist ::o/ret 1 ::o/del 1))]
+      (is (= comp (oplist ::o/ret 1))))))

@@ -1,5 +1,5 @@
 (ns ot.transforms-test
-  (:use [ot.transforms :only [transform compress insert retain]])
+  (:use [ot.transforms :only [transform compress retain]])
   (:require #+clj [clojure.test :as t :refer (is deftest testing)]
             #+clj [clojure.test.check.properties :as prop]
             #+cljs [cljs.test.check.properties :as prop :refer-macros [for-all]]
@@ -52,12 +52,6 @@
                       [a' b'] (transform a b)]
                   (= (documents/apply-ops doc-a b') (documents/apply-ops doc-b a')))))
 
-(deftest insert-test
-  (testing "insert will produce the correct resulting pair"
-    (let [[op1 op2] (insert (o/->Op ::o/ins "a"))]
-      (is (= op1 (->Op ::o/ins "a")))
-      (is (= op2 (->Op ::o/ret 1))))))
-
 (deftest retain-test
   (testing "retain will return a vec of two retain operations of the same value"
     (let [[a b] (retain 5)]
@@ -101,3 +95,16 @@
           result2 (compress ops2)]
       (is (= result1 (oplist ::o/ret 3 ::o/ins "a" ::o/ret 4)))
       (is (= result2 (oplist ::o/ret 4 ::o/ins "b"))))))
+
+
+(defmethod ot.transforms/transform-ops [::img ::o/operation] [ops1 ops2 ops']
+  [(rest ops1) ops2 [(conj (first ops') (first ops1))
+                     (conj (first ops') (o/->Op ::o/ret 1))]])
+
+(deftest wacky-test
+  (testing "yeah..."
+    (let [a (oplist ::o/ret 1 ::img "http://google.com/logo.png")
+          b (oplist ::o/ret 1 ::o/ins "b")
+          expected-a' (oplist ::o/ret 1 ::img "http://google.com/logo.png" ::o/ret 1)
+          expected-b' (oplist ::o/ret 2 ::o/ins "b")]
+      (assert-transforms "a" a b expected-a' expected-b'))))

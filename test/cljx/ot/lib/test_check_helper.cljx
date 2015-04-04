@@ -11,8 +11,8 @@
 (defn oplen [op]
   (match [op]
          [{:type ::o/ret :val v}] v
-         [{:type ::o/ins :val v}] 0
-         [{:type ::o/del :val v}] v))
+         [{:type ::o/del :val v}] v
+         :else 0))
 
 (def ins-op-gen
   (gen/fmap (partial apply ->Op)

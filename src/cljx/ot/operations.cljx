@@ -16,7 +16,7 @@
 (defn conj-ops [op-lists new-ops]
   (map conj op-lists new-ops))
 
-(defn assoc-op [new-ops ops]
+(defn assoc-ops [new-ops ops]
   (conj-ops ops new-ops))
 
 (defn insert? [operation]

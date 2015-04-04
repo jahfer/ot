@@ -8,8 +8,8 @@
 
 (defmulti compose-ops
   (fn [ops1 ops2 _]
-    (let [first-type (or (-> ops1 first :type) ::o/empty)
-          second-type (or (-> ops2 first :type) ::o/empty)]
+    (let [first-type  (-> ops1 first (:type ::o/empty))
+          second-type (-> ops2 first (:type ::o/empty))]
       [first-type second-type])))
 
 (defmethod compose-ops [::o/ret ::o/ret] [ops1 ops2 out]

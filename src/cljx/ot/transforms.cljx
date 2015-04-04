@@ -3,9 +3,6 @@
             #+cljs [cljs.core.match :refer-macros [match]]
             [ot.operations :as o]))
 
-(defn insert [operation]
-  [operation, (o/->Op ::o/ret 1)])
-
 (defn retain [value]
   [(o/->Op ::o/ret value) (o/->Op ::o/ret value)])
 
@@ -13,48 +10,38 @@
   (update-in (vec coll) [0 :val] #(- % val)))
 
 (defn retain-ops [ops1 ops2]
-  (let [val1 (:val (first ops1))
-        val2 (:val (first ops2))]
+  (let [val1 (-> ops1 first :val)
+        val2 (-> ops2 first :val)]
     (cond
-     (> val1 val2)
-       (let [ops1 (dec-val ops1 val2)]
-         [ops1 (rest ops2) (retain val2)])
-     (= val1 val2)
-       [(rest ops1) (rest ops2) (retain val2)]
-     :else
-       (let [ops2 (dec-val ops2 val1)]
-         [(rest ops1) ops2 (retain val1)]))))
+     (> val1 val2) [(dec-val ops1 val2) (rest ops2)         (retain val2)]
+     (= val1 val2) [(rest ops1)         (rest ops2)         (retain val2)]
+     :else         [(rest ops1)         (dec-val ops2 val1) (retain val1)])))
 
 (defn compress [ops]
   (reduce (fn [acc op]
             (if (every? o/retain? (list op (peek acc)))
               (update-in acc [(-> acc count dec) :val] #(+ % (:val op)))
               (conj acc op)))
-          []
-          ops))
+          [] ops))
+
 
 (defmulti transform-ops
   (fn [ops1 ops2 _]
-    (let [first-type (or (-> ops1 first :type) ::o/empty)
-          second-type (or (-> ops2 first :type) ::o/empty)]
+    (let [first-type  (-> ops1 first (:type ::o/empty))
+          second-type (-> ops2 first (:type ::o/empty))]
       [first-type second-type])))
 
 (defmethod transform-ops [::o/ins ::o/operation] [ops1 ops2 ops']
-  (let [ops' (-> (first ops1)
-                 (insert)
-                 (o/assoc-op ops'))]
-    [(rest ops1) ops2 ops']))
+  [(rest ops1) ops2 [(conj (first ops') (first ops1))
+                     (conj (second ops') (o/->Op ::o/ret 1))]])
 
 (defmethod transform-ops [::o/operation ::o/ins] [ops1 ops2 ops']
-  (let [ops' (-> (first ops2)
-                 (insert)
-                 (o/assoc-op (reverse ops'))
-                 (reverse))]
-    [ops1 (rest ops2) ops']))
+  [ops1 (rest ops2) [(conj (first ops')  (o/->Op ::o/ret 1))
+                     (conj (second ops') (first ops2))]])
 
 (defmethod transform-ops [::o/ret ::o/ret] [ops1 ops2 ops']
   (let [[ops1 ops2 result] (retain-ops ops1 ops2)]
-    [ops1 ops2 (o/assoc-op result ops')]))
+    [ops1 ops2 (map conj ops' result)]))
 
 (defmethod transform-ops [::o/del ::o/del] [ops1 ops2 ops']
   (let [val1 (:val (first ops1))
@@ -68,7 +55,7 @@
   (let [val1 (:val (first ops1))
         val2 (:val (first ops2))]
     (cond
-      (> val1 val2) [(dec-val ops1 val2) (rest ops2) (o/assoc-op (first ops2) ops')]
+      (> val1 val2) [(dec-val ops1 val2) (rest ops2) (map conj ops' (first ops2))]
       (= val1 val2) [(rest ops1) (rest ops2) [(conj (first ops') (first ops1)) (second ops')]]
       :else [(rest ops1) (dec-val ops2 val1) [(conj (first ops') (first ops1)) (second ops')]])))
 
