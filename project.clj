@@ -14,6 +14,7 @@
                  [org.clojure/core.match "0.3.0-alpha4"]
                  [com.cemerick/piggieback "0.1.5"] ; temporary for CLJX
                  [org.clojure/test.check "0.7.0"]
+                 [othello "0.1.0-SNAPSHOT"]
                  ;; server
                  [ring/ring-core "1.3.1"]
                  [compojure "1.2.1"]

@@ -2,9 +2,9 @@
   (:require [cemerick.cljs.test :as t :refer-macros [is deftest testing done]]
             [dommy.core :as dommy :refer-macros [sel1]]
             [om.core :as om :include-macros true]
+            [othello.operations :as operations]
+            [othello.transforms :as transforms]
             [ot.lib.test-util :as util]
-            [ot.operations :as operations]
-            [ot.transforms :as transforms]
             [ot.components.editor :as editor]))
 
 (enable-console-print!)

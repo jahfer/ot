@@ -3,10 +3,10 @@
             [clojurewerkz.cassaforte.client :as cc]
             [clojurewerkz.cassaforte.cql :as cql]
             [clojurewerkz.cassaforte.query :refer :all]
-            [ot.transforms :as transforms]
-            [ot.documents :as documents]
-            [ot.composers :as composers]
-            [ot.operations :as operations]))
+            [othello.transforms :as transforms]
+            [othello.documents :as documents]
+            [othello.composers :as composers]
+            [othello.operations :as operations]))
 
 (def root-document (atom "Hullo"))
 (def deltaids (atom {}))
@@ -91,7 +91,7 @@
       (when-not (get @deltaids documentid)
         (swap! deltaids assoc documentid 0N))
       (let [hash-deltas (map #(clojure.edn/read-string
-                               {:readers {'ot.operations.Op ot.operations/map->Op}}
+                               {:readers {'othello.operations.Op othello.operations/map->Op}}
                                (:operations %))
                              deltas)
             composed-ops (reduce composers/compose hash-deltas)

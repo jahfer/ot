@@ -3,7 +3,7 @@
             [ot.lib.sockets :as ws]
             [ot.lib.util :as util]
             [ot.transit-handlers :as transit-handlers]
-            [ot.composers :as composers]
+            [othello.composers :as composers]
             [om.core :as om :include-macros true]
             [cognitect.transit :as transit])
   (:require-macros [cljs.core.async.macros :refer [go go-loop]]))

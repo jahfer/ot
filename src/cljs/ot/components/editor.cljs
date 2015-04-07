@@ -5,9 +5,9 @@
             [ot.lib.queue2 :as q2]
             [ot.lib.util :as util]
             [ot.routes :as routes]
-            [ot.operations :as operations]
-            [ot.documents :as documents]
-            [ot.transforms :as transforms])
+            [othello.operations :as operations]
+            [othello.documents :as documents]
+            [othello.transforms :as transforms])
   (:require-macros [cljs.core.async.macros :refer [go go-loop alt!]]
                    [jayq.macros :refer [let-ajax]]))
 
