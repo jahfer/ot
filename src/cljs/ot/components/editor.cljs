@@ -22,18 +22,18 @@
      (.setSelectionRange editor new-pos new-pos))))
 
 (defn gen-insert-op [key caret text]
-  (let [op-list (operations/oplist :ret caret :ins key)
+  (let [op-list (operations/oplist ::operations/ret caret ::operations/ins key)
         chars-remaining (- (count text) caret)]
     (if (zero? chars-remaining)
       op-list
-      (conj op-list (operations/->Op :ret chars-remaining)))))
+      (conj op-list (operations/->Op ::operations/ret chars-remaining)))))
 
 (defn gen-delete-op [caret text]
-  (let [op-list (operations/oplist :ret (dec caret) :del 1)
+  (let [op-list (operations/oplist ::operations/ret (dec caret) ::operations/del 1)
         chars-remaining (- (count text) caret)]
     (if (zero? chars-remaining)
       op-list
-      (conj op-list (operations/->Op :ret chars-remaining)))))
+      (conj op-list (operations/->Op ::operations/ret chars-remaining)))))
 
 ;; ---------------------------------------------------------------------
 
@@ -46,7 +46,8 @@
   (when (not (util/in? rejected-keys (.-keyCode e)))
     (om/set-state! owner :caret (caret-position owner))
     (let [key (util/keyFromCode (.-which e))
-          op (gen-insert-op key (om/get-state owner :caret) (om/get-state owner :text))]
+          op (transforms/compress
+              (gen-insert-op key (om/get-state owner :caret) (om/get-state owner :text)))]
       (om/update-state! owner [:caret] inc)
       (update-text! owner op)
       (put! comm op))))
@@ -54,7 +55,8 @@
 (defn handle-keydown [e owner {:keys [comm]}]
   (om/set-state! owner :caret (caret-position owner))
   (when (= 8 (.-which e))
-    (let [op (gen-delete-op (om/get-state owner :caret) (om/get-state owner :text))]
+    (let [op (transforms/compress
+              (gen-delete-op (om/get-state owner :caret) (om/get-state owner :text)))]
       (om/update-state! owner [:caret] dec)
       (update-text! owner op)
       (put! comm op))))
