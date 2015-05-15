@@ -31,5 +31,5 @@
   (let [data {:text "Foobar"}
         caret-position 6]
     (testing "gen-insert-op returns a correct description of the user input"
-      (is (= (operations/oplist :ret 6 :ins "!")
+      (is (= (operations/oplist ::operations/ret 6 ::operations/ins "!")
              (editor/gen-insert-op "!" caret-position (:text data)))))))
