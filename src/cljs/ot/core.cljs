@@ -6,6 +6,7 @@
             [cljs.core.async :refer [chan <!]]
             [secretary.core :as secretary]
             [ot.lib.queue2 :as q2]
+            [othello.documents :as documents] ;; temp
             cljsjs.react)
   (:use-macros [jayq.macros :only [ready let-ajax]])
   (:require-macros [cljs.core.async.macros :refer [go-loop]]))
@@ -21,7 +22,20 @@
                       :settings {}
                       :comms    {:nav (chan)
                                  :queue (message-queue)}
-                      :editor   {}}))
+                      :editor   {:document-tree [{:nodeType ::documents/text
+                                                  :startIndex 0
+                                                  :length 7
+                                                  :data "Hello, "}
+                                                 {:nodeType ::link
+                                                  :startIndex 7
+                                                  :length 6
+                                                  :data {:href "http://jahfer.com"
+                                                         :text "Jahfer"
+                                                         :alt "Jahfer Husain's Portfolio"}}
+                                                 {:nodeType ::documents/text
+                                                  :startIndex 13
+                                                  :length 1
+                                                  :data "!"}]}}))
 
 (defn install-om [state container]
   (om/root app/app state {:target container}))

@@ -55,5 +55,5 @@
     om/IRender
     (render [_]
       (if (get-in app [:navigation-data :editable])
-        (om/build node-editor/node-editor app)  ;;(om/build editor/editor-com app)
+        (om/build node-editor/node-editor (:editor app))  ;;(om/build editor/editor-com app)
         (om/build read-only app)))))
