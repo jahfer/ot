@@ -9,7 +9,7 @@
 (defn caret-position
   "gets or sets the current cursor position"
   ([]
-   (util/toInt (.-baseOffset (.getSelection js/window))))
+   (util/toInt (.-startOffset (.getRangeAt (.getSelection js/window) 0))))
   ([owner new-pos]
    (let [editor (om/get-node owner)]
      (.setSelectionRange editor new-pos new-pos))))
@@ -22,15 +22,17 @@
   (when (not (util/in? rejected-keys (.-keyCode e)))
     (let [key (util/keyFromCode (.-which e))
           caret (caret-position)]
-      (println "Pressed" key "@" (+ caret (:startIndex node)))
-      ((:update-fn node) e node)))
-  (.stopPropagation e))
+      (println "Pressed" key "@" (+ caret (:startOffset node)))
+      ((:update-fn node) e node))
+    (.stopPropagation e)
+    false))
 
 (defn handle-keydown [e node]
   (when (= 8 (.-which e))
     (let [caret (caret-position)]
-      (println "Pressed DELETE @" (+ caret (:startIndex node)))))
-  (.stopPropagation e))
+      (println "Pressed DELETE @" (+ caret (:startOffset node))))
+    (.stopPropagation e)
+    false))
 
 ;; -------
 
@@ -67,11 +69,18 @@
     om/IRender
     (render [this]
       (dom/div nil
-               (map-indexed (fn [index node]
-                              (let [indexed-node (-> node
-                                                     (assoc :index index)
-                                                     (assoc :update-fn (on-update editor)))]
-                                (case (:nodeType node)
-                                  ::documents/text (om/build text-node indexed-node)
-                                  ::ot.core/link (om/build link-node indexed-node))))
-                            (:document-tree @editor))))))
+               (loop [index 0 offset 0 nodes (:document-tree @editor) out []]
+                 (if (seq nodes)
+                   (let [node (first nodes)
+                         indexed-node (-> node
+                                          (assoc :index index)
+                                          (assoc :startOffset offset)
+                                          (assoc :update-fn (on-update editor)))
+                         out (conj out (case (:nodeType node)
+                                         ::documents/text (om/build text-node indexed-node)
+                                         :link (om/build link-node indexed-node)))]
+                     (recur (inc index)
+                            (+ offset (:length node))
+                            (rest nodes)
+                            out))
+                   out))))))

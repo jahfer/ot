@@ -23,17 +23,14 @@
                       :comms    {:nav (chan)
                                  :queue (message-queue)}
                       :editor   {:document-tree [{:nodeType ::documents/text
-                                                  :startIndex 0
                                                   :length 7
                                                   :data "Hello, "}
-                                                 {:nodeType ::link
-                                                  :startIndex 7
+                                                 {:nodeType :link
                                                   :length 6
                                                   :data {:href "http://jahfer.com"
                                                          :text "Jahfer"
                                                          :alt "Jahfer Husain's Portfolio"}}
                                                  {:nodeType ::documents/text
-                                                  :startIndex 13
                                                   :length 1
                                                   :data "!"}]}}))
 
