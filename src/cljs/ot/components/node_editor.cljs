@@ -23,16 +23,15 @@
     (let [key (util/keyFromCode (.-which e))
           caret (caret-position)]
       (println "Pressed" key "@" (+ caret (:startOffset node)))
-      ((:update-fn node) e node))
-    (.stopPropagation e)
-    false))
+      (om/transact! node :length inc))
+    (.preventDefault e)))
 
 (defn handle-keydown [e node]
   (when (= 8 (.-which e))
     (let [caret (caret-position)]
-      (println "Pressed DELETE @" (+ caret (:startOffset node))))
-    (.stopPropagation e)
-    false))
+      (println "Pressed DELETE @" (+ caret (:startOffset node)))
+      (om/transact! node :length dec))
+    (.preventDefault e)))
 
 ;; -------
 
@@ -52,16 +51,11 @@
     om/IRender
     (render [this]
       (let [data (:data node)]
-        (dom/a #js {:alt (:alt data) :href (:href data)}
+        (dom/a #js {:alt (:alt data)
+                    :href (:href data)}
                (:text data))))))
 
 ;; -------
-
-(defn on-update [editor]
-  (fn [e active-node]
-    (let [length (:length active-node)
-          nodes-after (drop (inc (:index active-node)) (:document-tree editor))]
-      (doall (map #(om/transact! % :startIndex inc) nodes-after)))))
 
 (defn node-editor [editor owner]
   (reify
@@ -69,13 +63,12 @@
     om/IRender
     (render [this]
       (dom/div nil
-               (loop [index 0 offset 0 nodes (:document-tree @editor) out []]
+               (loop [index 0 offset 0 nodes (:document-tree editor) out []]
                  (if (seq nodes)
                    (let [node (first nodes)
                          indexed-node (-> node
                                           (assoc :index index)
-                                          (assoc :startOffset offset)
-                                          (assoc :update-fn (on-update editor)))
+                                          (assoc :startOffset offset))
                          out (conj out (case (:nodeType node)
                                          ::documents/text (om/build text-node indexed-node)
                                          :link (om/build link-node indexed-node)))]
