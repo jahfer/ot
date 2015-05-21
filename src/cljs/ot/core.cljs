@@ -21,15 +21,18 @@
                       :settings {}
                       :comms    {:nav (chan)
                                  :queue (message-queue)}
-                      :editor   {:document-tree [{:nodeType ::documents/text
+                      :editor   {:document-tree [{:id 1
+                                                  :node-type ::documents/text
                                                   :length 7
                                                   :data "Hello, "}
-                                                 {:nodeType :link
+                                                 {:id 2
+                                                  :node-type :link
                                                   :length 6
                                                   :data {:href "http://jahfer.com"
                                                          :text "Jahfer"
                                                          :alt "Jahfer Husain's Portfolio"}}
-                                                 {:nodeType ::documents/text
+                                                 {:id 3
+                                                  :node-type ::documents/text
                                                   :length 1
                                                   :data "!"}]}}))
 

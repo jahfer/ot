@@ -14,26 +14,20 @@
    (let [editor (om/get-node owner)]
      (.setSelectionRange editor new-pos new-pos))))
 
-;; -------
-
-(def rejected-keys [8 37 38 39 40])
-
 (defn handle-keypress [e node]
-  (when (not (util/in? rejected-keys (.-keyCode e)))
+  (when (not (util/in? [8 37 38 39 40] (.-keyCode e)))
     (let [key (util/keyFromCode (.-which e))
           caret (caret-position)]
-      (println "Pressed" key "@" (+ caret (:startOffset node)))
+      (println "Pressed" key "@" (+ caret (:start-offset node)))
       (om/transact! node :length inc))
     (.preventDefault e)))
 
 (defn handle-keydown [e node]
   (when (= 8 (.-which e))
     (let [caret (caret-position)]
-      (println "Pressed DELETE @" (+ caret (:startOffset node)))
+      (println "Pressed DELETE @" (+ caret (:start-offset node)))
       (om/transact! node :length dec))
     (.preventDefault e)))
-
-;; -------
 
 (defn text-node [node owner]
   (reify
@@ -50,30 +44,27 @@
     om/IDisplayName (display-name [_] "LinkNode")
     om/IRender
     (render [this]
-      (let [data (:data node)]
-        (dom/a #js {:alt (:alt data)
-                    :href (:href data)}
-               (:text data))))))
+      (let [{:keys [alt href text]} (:data node)]
+        (dom/a #js {:alt alt :href href} text)))))
 
-;; -------
+(defn component-for-node [node-type]
+  (case node-type
+    ::documents/text text-node
+    :link link-node))
 
 (defn node-editor [editor owner]
   (reify
     om/IDisplayName (display-name [_] "NodeEditor")
     om/IRender
     (render [this]
-      (dom/div nil
-               (loop [index 0 offset 0 nodes (:document-tree editor) out []]
-                 (if (seq nodes)
-                   (let [node (first nodes)
-                         indexed-node (-> node
-                                          (assoc :index index)
-                                          (assoc :startOffset offset))
-                         out (conj out (case (:nodeType node)
-                                         ::documents/text (om/build text-node indexed-node)
-                                         :link (om/build link-node indexed-node)))]
-                     (recur (inc index)
-                            (+ offset (:length node))
-                            (rest nodes)
-                            out))
-                   out))))))
+      (apply dom/div nil
+               (:rendered-nodes
+                (reduce (fn [{:keys [offset] :as out} node]
+                          (let [indexed-node (assoc node :start-offset offset)
+                                comp (component-for-node (:node-type node))]
+                            (-> out
+                                (update-in [:offset] + (:length node))
+                                (update-in [:rendered-nodes] conj
+                                           (om/build comp indexed-node {:key :id})))))
+                        {:offset 0 :rendered-nodes []}
+                        (:document-tree editor)))))))
