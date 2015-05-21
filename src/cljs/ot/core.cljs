@@ -6,8 +6,7 @@
             [cljs.core.async :refer [chan <!]]
             [secretary.core :as secretary]
             [ot.lib.queue2 :as q2]
-            [othello.documents :as documents] ;; temp
-            cljsjs.react)
+            [othello.documents :as documents]) ;; temp
   (:use-macros [jayq.macros :only [ready let-ajax]])
   (:require-macros [cljs.core.async.macros :refer [go-loop]]))
 

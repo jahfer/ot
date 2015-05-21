@@ -37,7 +37,6 @@
                  [secretary "1.2.2"]
                  [prismatic/dommy "1.0.0"]
                  [org.omcljs/om "0.8.8"]
-                 [cljsjs/react "0.13.1-0"]
                  [com.cognitect/transit-cljs "0.8.205"]]
 
   :main puppetlabs.trapperkeeper.main
