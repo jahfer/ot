@@ -33,8 +33,8 @@
                                                          :alt "Jahfer Husain's Portfolio"}}
                                                  {:id 3
                                                   :node-type ::documents/text
-                                                  :length 1
-                                                  :data "!"}]}}))
+                                                  :length 20
+                                                  :data "! How are you today?"}]}}))
 
 (defn install-om [state container]
   (om/root app/app state {:target container}))

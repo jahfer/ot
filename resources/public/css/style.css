@@ -37,3 +37,26 @@ body {
     margin: 0 auto;
     border: none;
 }
+
+.test-char {
+    font-family: monospace;
+    display: inline;
+}
+
+.author-cursor {
+    position:absolute;
+    width: 2px;
+    background: #4BC067;
+}
+
+.author {
+    position:absolute;
+    bottom: 18px;
+    font-family: sans-serif;
+    font-size: 9px;
+    padding: 2px;
+    background: #4BC067;
+    color: #fff;
+    font-weight: bold;
+    letter-spacing: 0.5px;
+}
