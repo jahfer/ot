@@ -9,13 +9,20 @@
 
 (enable-console-print!)
 
+(def current-user :123)
+
 (defn caret-position
   "gets or sets the current cursor position"
   ([]
    (util/toInt (.-startOffset (.getRangeAt (.getSelection js/window) 0))))
-  ([owner new-pos]
-   (let [editor (om/get-node owner)]
-     (.setSelectionRange editor new-pos new-pos))))
+  ([node new-pos]
+    (let [el (aget (.-childNodes node) 0)
+          range (.createRange js/document)
+          sel (.getSelection js/document)]
+      (.setStart range el new-pos)
+      (.collapse range true)
+      (.removeAllRanges sel)
+      (.addRange sel range))))
 
 (defn handle-keypress [e node owner]
   (when (not (util/in? [8 37 38 39 40] (.-keyCode e)))
@@ -30,7 +37,8 @@
                        ::operations/ret (- (:length node) caret))
             update (om/get-state owner :update)]
         (put! update {:ops ops :node node})
-        (om/transact! node :length inc)))
+        (om/transact! node :length inc)
+        (om/transact! node [:authors current-user :offset] inc)))
     (.preventDefault e)))
 
 (defn handle-keydown [e node owner]
@@ -41,35 +49,41 @@
     (.preventDefault e)))
 
 (defn render-author-cursor [e node owner]
-  (om/transact! node :authors #(assoc % :123 {:id 123
-                                              :name "Jahfer"
-                                              :node (aget (.-childNodes (om/get-node owner "node-content")) 0)
-                                              :offset (caret-position)})))
+  (om/transact! node :authors #(assoc % current-user {:id 123
+                                                      :name "Jahfer"
+                                                      :node (om/get-node owner "node-content")
+                                                      :offset (caret-position)})))
 
-(defn author-cursor [cursor owner]
+(defn author-cursor [author owner]
   (reify
     om/IDisplayName (display-name [_] "CursorNode")
     om/IRender
     (render [this]
-      (let [range (.createRange js/document)]
-        (.setStart range (:node cursor) (:offset cursor))
-        (.setEnd range (:node cursor) (inc (:offset cursor)))
+      (let [range (.createRange js/document)
+            inner-node (aget (.-childNodes (:node author)) 0)]
+        (.setStart range inner-node (:offset author))
+        (.setEnd range inner-node (inc (:offset author)))
         (let [bounding (.getBoundingClientRect range)]
-          (.log js/console bounding)
           (dom/div #js {:className "author-cursor"
                         :style #js {:top (str (.-top bounding) "px")
                                     :left (str (.-left bounding) "px")
                                     :height "18px"}}
-                   (dom/span #js {:className "author"} (:name cursor))))))))
+                   (dom/span #js {:className "author"} (:name author))))))))
 
 (defn text-node [node owner]
   (reify
     om/IDisplayName (display-name [_] "TextNode")
+    om/IDidUpdate
+    (did-update [this prev-props prev-state]
+      (let [dom-node (om/get-node owner "node-content")
+            author (get (:authors node) current-user)]
+        (when author
+          (println "Author cursor at" (:offset author))
+          (caret-position dom-node (:offset author)))))
     om/IRender
     (render [this]
       (dom/span nil
                 (apply dom/span nil
-                       ;; need to pass (om/get-node owner here, if possible)
                        (om/build-all author-cursor (vals (:authors node))))
                 (dom/span #js {:ref "node-content"
                                :contentEditable true
