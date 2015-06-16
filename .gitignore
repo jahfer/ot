@@ -10,3 +10,5 @@ pom.xml.asc
 resources/public/js/*
 log/*
 resources/reference.js
+.idea/*
+*.iml

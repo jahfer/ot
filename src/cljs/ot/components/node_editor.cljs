@@ -35,30 +35,39 @@
                        ::operations/ins char
                        ;; should retain over the length of the document!!
                        ::operations/ret (- (:length node) caret))
-            update (om/get-state owner :update)]
-        (put! update {:ops ops :node node})
+            update-ch (om/get-state owner :update)]
+        (put! update-ch {:ops ops :node node})
         (om/transact! node :length inc)
         (om/transact! node [:authors current-user :offset] inc)))
     (.preventDefault e)))
 
 (defn handle-keydown [e node owner]
   (when (util/in? [8 46] (.-which e))
-    (let [caret (caret-position)]
+    (let [caret (dec (caret-position))
+          op-offset (+ caret (:start-offset node))
+          ops (operations/oplist
+                ::operations/ret op-offset
+                ::operations/del 1
+                ;; should retain over the length of the document!!
+                ::operations/ret (- (:length node) caret))
+          update-ch (om/get-state owner :update)]
       (println "Pressed DELETE @" (+ caret (:start-offset node)))
-      (om/transact! node :length dec))
+      (put! update-ch {:ops ops :node node})
+      (om/transact! node :length dec)
+      (om/transact! node [:authors current-user :offset] dec))
     (.preventDefault e)))
 
-(defn render-author-cursor [e node owner]
+(defn render-author-cursor [_ node owner]
   (om/transact! node :authors #(assoc % current-user {:id 123
                                                       :name "Jahfer"
                                                       :node (om/get-node owner "node-content")
                                                       :offset (caret-position)})))
 
-(defn author-cursor [author owner]
+(defn author-cursor [author _]
   (reify
     om/IDisplayName (display-name [_] "CursorNode")
     om/IRender
-    (render [this]
+    (render [_]
       (let [range (.createRange js/document)
             inner-node (aget (.-childNodes (:node author)) 0)]
         (.setStart range inner-node (:offset author))
@@ -74,14 +83,12 @@
   (reify
     om/IDisplayName (display-name [_] "TextNode")
     om/IDidUpdate
-    (did-update [this prev-props prev-state]
-      (let [dom-node (om/get-node owner "node-content")
-            author (get (:authors node) current-user)]
-        (when author
-          (println "Author cursor at" (:offset author))
+    (did-update [_ _ _]
+      (let [dom-node (om/get-node owner "node-content")]
+        (when-let [author (get (:authors node) current-user)]
           (caret-position dom-node (:offset author)))))
     om/IRender
-    (render [this]
+    (render [_]
       (dom/span nil
                 (apply dom/span nil
                        (om/build-all author-cursor (vals (:authors node))))
@@ -92,11 +99,11 @@
                                :onClick #(render-author-cursor % node owner)}
                          (:data node))))))
 
-(defn link-node [node owner]
+(defn link-node [node _]
   (reify
     om/IDisplayName (display-name [_] "LinkNode")
     om/IRender
-    (render [this]
+    (render [_]
       (let [{:keys [alt href text]} (:data node)]
         (dom/a #js {:alt alt :href href} text)))))
 
@@ -116,12 +123,11 @@
       (let [update (om/get-state owner :update)]
         (go-loop []
           (let [{:keys [node ops]} (<! update)
-                offset (:val (first ops))
                 relative-ops (update-in ops [0 :val] #(- % (:start-offset node)))]
             (om/transact! node :data #(documents/apply-ops % relative-ops))
             (recur)))))
     om/IRenderState
-    (render-state [this {:keys [update]}]
+    (render-state [_ {:keys [update]}]
       (apply dom/div nil
                (:rendered-nodes
                 (reduce (fn [{:keys [offset] :as out} node]

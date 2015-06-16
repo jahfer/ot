@@ -7,6 +7,10 @@ body {
   width: 500px;
 }
 
+.container span {
+  outline: 0;
+}
+
 .page-title {
   padding-bottom: 5px;
   margin-top: 20px;
