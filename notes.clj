@@ -22,3 +22,7 @@
 ;; Parse to data structure, render however you want!
 ;; Keep data structure around to apply operations onto? Sounds tricky, but necessary
 ;; The key is to represent your document as data!!!!
+
+;; Good idea: B+ Tree for applying operations on data structure.
+;; That way we can skip large chunks of the document to apply operations to
+;; the correct area.

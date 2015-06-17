@@ -21,7 +21,9 @@
                       :settings {}
                       :comms    {:nav (chan)
                                  :queue (message-queue)}
-                      :editor   {:document-tree [{:id 1
+                      :editor   {:authors {:current-user :123
+                                           :cursors {}}
+                                 :document-tree [{:id 1
                                                   :node-type ::documents/text
                                                   :length 7
                                                   :data "Hello, "}
