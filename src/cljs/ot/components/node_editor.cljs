@@ -1,11 +1,14 @@
 (ns ot.components.node-editor
   (:require [om.core :as om :include-macros true]
             [om.dom :as dom :include-macros true]
+            [ot.routes :as routes]
             [ot.lib.util :as util]
+            [ot.lib.queue2 :as q]
             [cljs.core.async :refer [chan <! put!]]
             [othello.documents :as documents]
             [othello.operations :as operations])
-  (:require-macros [cljs.core.async.macros :refer [go-loop]]))
+  (:require-macros [cljs.core.async.macros :refer [go-loop]]
+                   [jayq.macros :refer [let-ajax]]))
 
 (enable-console-print!)
 
@@ -105,42 +108,69 @@
     ::documents/text text-node
     :link link-node))
 
-(defn node-editor [editor owner]
+(defn write-parent-id! [owner id]
+  (om/set-state! owner :parent-id id))
+
+(defn node-editor [app owner]
   (reify
     om/IDisplayName (display-name [_] "NodeEditor")
     om/IInitState
     (init-state [_]
-      {:update (chan)})
+                {:update (chan)
+                 :local-id (util/unique-id)
+                 :parent-id nil})
     om/IWillMount
     (will-mount [_]
-      (let [update (om/get-state owner :update)]
-        (go-loop []
-                 (let [{:keys [node type ops]} (<! update)
-                       relative-ops (update-in ops [0 :val] #(- % (:start-offset node)))
-                       current-user (get-in editor [:authors :current-user])]
-                   (om/transact! node :data #(documents/apply-ops % relative-ops))
-                   (condp = type
-                         :delete (om/transact! editor [:authors :cursors current-user :offset] dec)
-                         :insert (om/transact! editor [:authors :cursors current-user :offset] inc)) ;; inc or dec
-                   (recur)))))
+                (let [queue (:queue app)
+                      documentid (get-in app [:navigation-data :documentid])]
+                  (let-ajax [remote-doc {:url (str (routes/document-path {:id documentid}) ".json")}]
+                            (om/set-state! owner :parent-id (:deltaid remote-doc)))
+                  ;; outgoing messages
+                  (go-loop []
+                    (let [update (om/get-state owner :update)
+                          {:keys [node type ops]} (<! update)
+                          relative-ops (update-in ops [0 :val] #(- % (:start-offset node)))
+                          current-user (get-in app [:editor :authors :current-user])]
+                      ;; apply message to local state
+                      (om/transact! node :data #(documents/apply-ops % relative-ops))
+                      (om/transact! (:editor app) [:authors :cursors current-user :offset]
+                                    (if (= type :delete) dec inc))
+                      ;; prepare and send event to server
+                      (om/set-state! owner :local-id (util/unique-id))
+                      (q/send queue {:local-id (om/get-state owner :local-id)
+                                     :parent-id (om/get-state owner :parent-id)
+                                     :ops ops})
+                      (recur)))
+                  ;; incoming messages
+                  ;; (go-loop []
+                  ;;   (let [{:keys [id ops]} (<! (:inbound queue))]
+                  ;;     (apply-operation! owner queue id ops)
+                  ;;     (write-parent-id! owner id))
+                  ;;   (recur))
+
+                  ;; roundtrip ack
+                  (go-loop []
+                    (let [{:keys [server-id]} (<! (:recv-ids queue))]
+                      (write-parent-id! owner server-id)
+                      (recur)))))
     om/IDidUpdate
     (did-update [this prev-props prev-state]
-      (let [current-user (get-in editor [:authors :current-user])]
-        (when-let [author (get-in editor [:authors :cursors current-user])]
-          (caret-position (:node author) (:offset author)))))
+                (let [current-user (get-in app [:editor :authors :current-user])]
+                  (when-let [author (get-in app [:editor :authors :cursors current-user])]
+                    (caret-position (:node author) (:offset author)))))
     om/IRenderState
     (render-state [_ {:keys [update]}]
-      (apply dom/div #js {:onClick #(track-author-cursor % (:authors editor))}
-             (into (:rendered-nodes
-                     (reduce (fn [{:keys [offset] :as out} node]
-                               (let [indexed-node (assoc node :start-offset offset)
-                                     comp (component-for-node (:node-type node))]
-                                 (-> out
-                                     (update-in [:offset] + (:length node))
-                                     (update-in [:rendered-nodes] conj
-                                                (om/build comp indexed-node {:key :id
-                                                                             :init-state {:update update}})))))
-                             {:offset 0 :rendered-nodes []}
-                             (:document-tree editor)))
-                   (when-let [cursors (vals (get-in editor [:authors :cursors]))]
-                     (om/build-all author-cursor cursors)))))))
+                  (apply dom/div #js {:onClick #(track-author-cursor % (get-in app [:editor :authors]))}
+                         (into (:rendered-nodes
+                                (reduce (fn [{:keys [offset] :as out} node]
+                                          (let [indexed-node (assoc node :start-offset offset)
+                                                comp (component-for-node (:node-type node))]
+                                            (-> out
+                                                (update-in [:offset] + (:length node))
+                                                (update-in [:rendered-nodes] conj
+                                                           (om/build comp indexed-node {:key :id
+                                                                                        :init-state {:update update}})))))
+                                        {:offset 0 :rendered-nodes []}
+                                        (get-in app [:editor :document-tree])))
+                               (when-let [cursors (vals (get-in app [:editor :authors :cursors]))]
+                                 (om/build-all author-cursor cursors)))))))
