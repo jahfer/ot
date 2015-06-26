@@ -3,7 +3,7 @@
             [om.dom :as dom :include-macros true]
             [ot.routes :as routes]
             [ot.lib.util :as util]
-            [ot.lib.queue2 :as q]
+            [ot.lib.queue :as q]
             [cljs.core.async :refer [chan <! put!]]
             [othello.documents :as documents]
             [othello.operations :as operations])
