@@ -137,7 +137,7 @@
       (om/transact! active-node :data #(documents/apply-ops % ops))
       (om/update! active-node :length (count (:data @active-node))))))
 
-(defn apply-operation! [nodes queue id ops]
+(defn apply-operation! [nodes queue ops]
   (let [last-op (deref (:last-client-op queue))]
     (if-not (seq last-op)
       ;; client hasn't performed actions, can apply cleanly
@@ -189,7 +189,7 @@
                   ;; incoming messages
                   (go-loop []
                     (let [{:keys [id ops]} (<! (:inbound queue))]
-                      (apply-operation! (get-in app [:editor :document-tree]) queue id ops)
+                      (apply-operation! (get-in app [:editor :document-tree]) queue ops)
                       (write-parent-id! owner id))
                     (recur))
                   ;; roundtrip ack
