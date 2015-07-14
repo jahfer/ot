@@ -7,14 +7,14 @@
 (defn open! [nav-ch navigation-point args]
   (put! nav-ch [navigation-point args]))
 
-(defn define-document-routes! [nav-ch]
+(defn define-document-routes! [nav-ch {:keys [debug] :or {:debug false}}]
   (defroute document-edit-path "/editor/documents/:id/edit" [id]
-    (open! nav-ch :document-edit {:documentid id :editable true}))
+    (open! nav-ch :document-edit {:documentid id :editable true :debug debug}))
   (defroute document-path "/editor/documents/:id" [id]
-    (open! nav-ch :document-show {:documentid id :editable false}))
+    (open! nav-ch :document-show {:documentid id :editable false :debug debug}))
   (defroute documents-path "/editor/documents" []
-    (open! nav-ch :document-index {})))
+    (open! nav-ch :document-index {:debug debug})))
 
-(defn define-routes! [state]
+(defn define-routes! [state opts]
   (let [nav-ch (get-in @state [:comms :nav])]
-    (define-document-routes! nav-ch)))
+    (define-document-routes! nav-ch opts)))

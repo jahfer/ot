@@ -25,18 +25,8 @@
                                            :cursors {}}
                                  :document-tree [{:id 1
                                                   :node-type ::documents/text
-                                                  :length 7
-                                                  :data "Hello, "}
-                                                 {:id 2
-                                                  :node-type :link
-                                                  :length 6
-                                                  :data {:href "http://jahfer.com"
-                                                         :text "Jahfer"
-                                                         :alt "Jahfer Husain's Portfolio"}}
-                                                 {:id 3
-                                                  :node-type ::documents/text
-                                                  :length 20
-                                                  :data "! How are you today?"}]}}))
+                                                  :length 3
+                                                  :data "Hi!"}]}}))
 
 (defn install-om [state container]
   (om/root app/app state {:target container}))
@@ -49,7 +39,7 @@
                                  (assoc :navigation-point nav-point)
                                  (assoc :navigation-data  args))))
         (recur)))
-    (routes/define-routes! state)
+    (routes/define-routes! state {:debug true})
     (secretary/dispatch! (.-pathname js/location))
     (if-let [container (.getElementById js/document "app")]
       (install-om state container)
