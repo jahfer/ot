@@ -76,11 +76,14 @@
     (let [range (.createRange js/document)
           inner-node (aget (.-childNodes (:node author)) 0)]
       (when inner-node
-        (.setStart range inner-node (:offset author))
-        (.setEnd range inner-node (inc (:offset author)))
+        (let [selection (if (< (:offset author) (.-length inner-node))
+                          (list (:offset author) (inc (:offset author)))
+                          (list (dec (:offset author)) (:offset author)))]
+          (.setStart range inner-node (first selection))
+          (.setEnd range inner-node (second selection)))
         (let [bounding (.getBoundingClientRect range)]
           (om/set-state! owner :position {:top  (str (.-top bounding) "px")
-                                          :left (str (.-left bounding) "px")})))
+                                          :left (str (.-left bounding) "px")}))) ;; should be .-right if reading from end
       (om/set-state! owner :last-offset (:offset author)))))
 
 (defn author-cursor [author owner]
@@ -175,9 +178,6 @@
                  :parent-id nil})
     om/IWillMount
     (will-mount [_]
-      (when (empty (get-in app [:editor :document-tree]))
-        (println frame-id "populating document tree with empty node")
-        (om/update! (:editor app) :document-tree [empty-node-data]))
       (let [queue (:queue app)
             documentid (get-in app [:navigation-data :documentid])]
         (let-ajax [remote-doc {:url (str (routes/document-path {:id documentid}) ".json")}]

@@ -23,11 +23,11 @@
                                          :queue (message-queue)}
                       :editor           {:authors {:current-user :123
                                                    :cursors      {}}
-                                         :document-tree []
-                                         ;:document-tree [{:id 1
-                                         ;                 :node-type ::documents/text
-                                         ;                 :length 3
-                                         ;                 :data "Hi!"}]
+                                         ;:document-tree []
+                                         :document-tree [{:id 1
+                                                          :node-type ::documents/text
+                                                          :length 3
+                                                          :data "Hi!"}]
                                          }}))
 
 (defn install-om [state container]

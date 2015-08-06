@@ -32,11 +32,11 @@
                  [org.clojure/tools.logging "0.2.6"]
                  [org.clojure/tools.namespace "0.2.9"]
                  ;; client
-                 [org.clojure/clojurescript "0.0-3308"]
+                 [org.clojure/clojurescript "1.7.48"]
                  [jayq "2.5.4"]
                  [secretary "1.2.2"]
                  [prismatic/dommy "1.0.0"]
-                 [org.omcljs/om "0.8.8"]
+                 [org.omcljs/om "0.9.0"]
                  [com.cognitect/transit-cljs "0.8.220"]]
 
   :main puppetlabs.trapperkeeper.main
