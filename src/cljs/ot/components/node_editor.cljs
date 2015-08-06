@@ -25,10 +25,11 @@
    (let [el (aget (.-childNodes node) 0)
          range (.createRange js/document)
          sel (.getSelection js/document)]
-     (.setStart range el new-pos)
-     (.collapse range true)
-     (.removeAllRanges sel)
-     (.addRange sel range))))
+     (when el
+       (.setStart range el new-pos)
+       (.collapse range true)
+       (.removeAllRanges sel)
+       (.addRange sel range)))))
 
 (defn handle-keypress [e node owner]
   (when (not (util/in? [8 37 38 39 40] (.-keyCode e)))
@@ -44,7 +45,6 @@
             update-ch (om/get-state owner :update)]
         (put! update-ch {:type :insert :ops ops :node node})
         (om/transact! node :length inc)
-        (println frame-id "node length updated" (:length node) (:length @node))
         (om/transact! node [:authors current-user :offset] inc)))
     (.preventDefault e)))
 
@@ -75,12 +75,13 @@
   (when-not (= (:offset author) (om/get-state owner :last-offset))
     (let [range (.createRange js/document)
           inner-node (aget (.-childNodes (:node author)) 0)]
-      (.setStart range inner-node (:offset author))
-      (.setEnd range inner-node (inc (:offset author)))
-      (let [bounding (.getBoundingClientRect range)]
-        (om/set-state! owner :last-offset (:offset author))
-        (om/set-state! owner :position {:top (str (.-top bounding) "px")
-                                        :left (str (.-left bounding) "px")})))))
+      (when inner-node
+        (.setStart range inner-node (:offset author))
+        (.setEnd range inner-node (inc (:offset author)))
+        (let [bounding (.getBoundingClientRect range)]
+          (om/set-state! owner :position {:top  (str (.-top bounding) "px")
+                                          :left (str (.-left bounding) "px")})))
+      (om/set-state! owner :last-offset (:offset author)))))
 
 (defn author-cursor [author owner]
   (reify
@@ -127,6 +128,7 @@
 
 (defn update-text! [nodes ops]
   (when (= (-> ops first :type) ::operations/ret)
+    (println nodes)
     (let [retain-length (-> ops first :val)
           active-node (reduce (fn [acc node]
                                 (let [sum (+ acc (:length @node))]
@@ -134,8 +136,11 @@
                                   (if (>= sum retain-length) (reduced node) sum)))
                               0 nodes)]
       (println frame-id "Updating text for node" active-node)
-      (om/transact! active-node :data #(documents/apply-ops % ops))
-      (om/update! active-node :length (count (:data @active-node))))))
+      (if (om/transactable? active-node)
+        (do
+          (om/transact! active-node :data #(documents/apply-ops % ops))
+          (om/update! active-node :length (count (:data @active-node))))
+        (println frame-id "Could not find node to update - not transactable")))))
 
 (defn apply-operation! [nodes queue ops]
   (let [last-op (deref (:last-client-op queue))]
@@ -156,6 +161,10 @@
         ;; keep up to date with transformations
         (reset! (:last-client-op queue) a'')))))
 
+(def empty-node-data {:data      ""
+                      :node-type ::documents/text
+                      :length    0})
+
 (defn node-editor [app owner]
   (reify
     om/IDisplayName (display-name [_] "NodeEditor")
@@ -166,6 +175,9 @@
                  :parent-id nil})
     om/IWillMount
     (will-mount [_]
+      (when (empty (get-in app [:editor :document-tree]))
+        (println frame-id "populating document tree with empty node")
+        (om/update! (:editor app) :document-tree [empty-node-data]))
       (let [queue (:queue app)
             documentid (get-in app [:navigation-data :documentid])]
         (let-ajax [remote-doc {:url (str (routes/document-path {:id documentid}) ".json")}]
@@ -189,6 +201,7 @@
         ;; incoming messages
         (go-loop []
                  (let [{:keys [id ops]} (<! (:inbound queue))]
+                   ;; For some reason, app is out of date! (does not have empty node in :document-tree)
                    (apply-operation! (get-in app [:editor :document-tree]) queue ops)
                    (write-parent-id! owner id))
                  (recur))

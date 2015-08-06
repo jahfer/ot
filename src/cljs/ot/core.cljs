@@ -15,18 +15,20 @@
 (defn message-queue []
   (q/new-queue "ws://localhost:3000/editor/ws"))
 
-(def app-state (atom {:environment "development"
+(def app-state (atom {:environment      "development"
                       :navigation-point nil
-                      :navigation-data nil
-                      :settings {}
-                      :comms    {:nav (chan)
-                                 :queue (message-queue)}
-                      :editor   {:authors {:current-user :123
-                                           :cursors {}}
-                                 :document-tree [{:id 1
-                                                  :node-type ::documents/text
-                                                  :length 3
-                                                  :data "Hi!"}]}}))
+                      :navigation-data  nil
+                      :settings         {}
+                      :comms            {:nav   (chan)
+                                         :queue (message-queue)}
+                      :editor           {:authors {:current-user :123
+                                                   :cursors      {}}
+                                         :document-tree []
+                                         ;:document-tree [{:id 1
+                                         ;                 :node-type ::documents/text
+                                         ;                 :length 3
+                                         ;                 :data "Hi!"}]
+                                         }}))
 
 (defn install-om [state container]
   (om/root app/app state {:target container}))

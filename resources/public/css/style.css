@@ -26,6 +26,12 @@ body {
   display: block;
 }
 
+/* Allow editing of blank div */
+:empty {
+    display: block;
+    height: 1em;
+}
+
 #editor {
   width: 500px;
   height: 150px;
