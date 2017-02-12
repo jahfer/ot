@@ -1,6 +1,9 @@
 # ot [![Build Status](https://travis-ci.org/jahfer/ot.svg?branch=master)](https://travis-ci.org/jahfer/ot)
 `ot` is a basic implementation of Operational Transforms, used to resolve concurrent edits of a document from multiple sources.
 
+## Is this what I want?
+Probably not. This is a first-pass at the idea. The library extracted from this is probably what you're interested in: [jahfer/othello](https://github.com/jahfer/othello). There's also an implementation using that library available at [jahfer/othello-editor](https://github.com/jahfer/othello-editor).
+
 ## Usage
 ### Start server:
 ```shell
