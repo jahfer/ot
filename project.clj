@@ -9,21 +9,21 @@
             [lein-cljsbuild "1.0.5"]]
 
   :dependencies [;; general
-                 [org.clojure/clojure "1.6.0"]
+                 [org.clojure/clojure "1.7.0"]
                  [org.clojure/core.async "0.1.346.0-17112a-alpha"]
-                 [org.clojure/core.match "0.3.0-alpha4"]
-                 [com.cemerick/piggieback "0.1.5"] ; temporary for CLJX
+                 [org.clojure/core.match "0.3.0-alpha4" :exclusions [org.clojure/tools.reader]]
+                 ;;[com.cemerick/piggieback "0.1.5" :exclusions [org.clojure/tools.reader]] ; temporary for CLJX
                  [org.clojure/test.check "0.7.0"]
-                 [othello "0.1.0-SNAPSHOT"]
+                 [othello "0.1.0-SNAPSHOT" :exclusions [org.clojure/tools.reader]]
                  ;; server
-                 [ring/ring-core "1.3.1"]
-                 [compojure "1.2.1"]
+                 [ring/ring-core "1.4.0" :exclusions [org.clojure/tools.reader]]
+                 [compojure "1.3.4"]
                  [http-kit "2.1.18"]
                  [hiccup "1.0.5"]
                  [joplin.core "0.2.7"]
                  [joplin.cassandra "0.2.7"]
                  [clojurewerkz/cassaforte "2.0.0" :exclusions [com.google.guava/guava]]
-                 [com.cognitect/transit-clj "0.8.269"]
+                 [com.cognitect/transit-clj "0.8.275"]
                  [org.clojure/tools.nrepl "0.2.3"]
                  [org.clojure/tools.cli "0.3.1"]
                  [puppetlabs/trapperkeeper "1.0.1"]
@@ -32,13 +32,12 @@
                  [org.clojure/tools.logging "0.2.6"]
                  [org.clojure/tools.namespace "0.2.9"]
                  ;; client
-                 [org.clojure/clojurescript "0.0-3126"]
+                 [org.clojure/clojurescript "1.7.48"]
                  [jayq "2.5.4"]
                  [secretary "1.2.2"]
                  [prismatic/dommy "1.0.0"]
-                 [org.omcljs/om "0.8.8"]
-                 [cljsjs/react "0.13.1-0"]
-                 [com.cognitect/transit-cljs "0.8.205"]]
+                 [org.omcljs/om "0.9.0"]
+                 [com.cognitect/transit-cljs "0.8.220"]]
 
   :main puppetlabs.trapperkeeper.main
 
@@ -75,9 +74,9 @@
                                              "test/cljs"
                                              "target/generated/src/cljs"
                                              "target/generated/test/cljs"]
-                              :notify-command ["slimerjs" :cljs.test/runner
-                                               "resources/public/js/vendor/jquery-1.10.2.min.js"
-                                               "resources/public/js/dev/main.js"]
+                              ;; :notify-command ["slimerjs" :cljs.test/runner
+                              ;;                  "resources/public/js/vendor/jquery-1.10.2.min.js"
+                              ;;                  "resources/public/js/dev/main.js"]
                               :compiler {:output-to "resources/public/js/dev/main.js"
                                          :output-dir "resources/public/js/dev"
                                          :optimizations :simple

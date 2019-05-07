@@ -1,0 +1,43 @@
+#+TITLE: OT Notes
+#+SETUPFILE: ~/Dropbox/Org/org-templates/theme-bigblow.setup
+
+* General
+** Ideas for multiple cursors
+*** Store as metadata
+   #+BEGIN_SRC clojure
+     (def operation ^{::cursor {:position 4 :name "Jahfer"}}
+       {:ops [] :client-id "client-a9d9h-a3" :parent-id 4 :id 5})
+   #+END_SRC
+*** Store as operation (is transient, so may not make sense)
+#+BEGIN_SRC clojure
+  (->Op :cursor {:position 4 :name "Jahfer"})
+#+END_SRC
+*** Pass as completely separate feed (seems weird b/c dependent on positions)
+
+** How to Render
+*** Use react-style components for all nodes, and track edits within and between!
+  - Text changes happen in a =<OTText>= element, images are =<OTImage>=, cursors are potentially a separate layer on top?
+#+BEGIN_SRC xml
+  <Document>
+    <OTText>Hello World. </OTText><OTLink href="http://google.com">Click me!</OTLink>
+    <OTImage src="http://google.com/image.png">
+  </Document>
+#+END_SRC
+*** Parse to data structure, render however you want!
+  - Keep data structure around to apply operations onto? Sounds tricky, but necessary
+  - The key is to represent your document as data!!!!
+
+#+BEGIN_SRC clojure
+  [{:node-type :text :length 7 :data "Hello, "}
+   {:node-type :link :length 6 :data {:href "http://jahfer.com"
+                                      :text "Jahfer"
+                                      :alt "Jahfer Husain's Portfolio"}}
+   {:node-type :text :length 1 :data "!"}]
+#+END_SRC
+#+BEGIN_QUOTE
+"Hello, Jahfer!"
+#+END_QUOTE
+
+*** Good idea: B+ Tree for applying operations on data structure.
+   - Note taken on [2015-06-27 Sat 23:56] \\
+     That way we can skip large chunks of the document to apply operations to the correct area.

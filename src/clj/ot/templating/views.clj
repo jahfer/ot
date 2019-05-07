@@ -8,8 +8,7 @@
    (hic-p/include-css "/css/style.css")])
 
 (def om-scripts
-  (hic-p/include-js "/js/vendor/react-0.8.0.js"
-                    "/js/vendor/jquery-1.10.2.min.js"
+  (hic-p/include-js "/js/vendor/jquery-1.10.2.min.js"
                     "/js/dev/main.js"))
 
 (defn document []

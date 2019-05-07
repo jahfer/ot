@@ -1,4 +1,4 @@
-(ns ot.lib.queue2
+(ns ot.lib.queue
   (:require [cljs.core.async :refer [put! chan <!]]
             [ot.lib.sockets :as ws]
             [ot.lib.util :as util]

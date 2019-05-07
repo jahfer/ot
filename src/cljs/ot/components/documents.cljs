@@ -1,6 +1,6 @@
 (ns ot.components.documents
   (:require [ot.routes :as routes]
-            [ot.components.editor :as editor]
+            [ot.components.node-editor :as node-editor]
             [om.core :as om :include-macros true]
             [om.dom :as dom])
   (:require-macros [jayq.macros :refer [let-ajax]]
@@ -54,5 +54,7 @@
     om/IRender
     (render [_]
       (if (get-in app [:navigation-data :editable])
-        (om/build editor/editor-com app)
+        (om/build node-editor/node-editor {:navigation-data (:navigation-data app)
+                                           :queue (get-in app [:comms :queue])
+                                           :editor (:editor app)})
         (om/build read-only app)))))

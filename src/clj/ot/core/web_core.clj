@@ -35,6 +35,9 @@
     (transit/write writer msg)
     (.toString out)))
 
+(defn not-found [msg]
+  (res/not-found msg))
+
 (defn edn-response [data]
   (-> (res/response (pr-str data))
       (res/content-type "application/edn")))
@@ -58,7 +61,7 @@
           cleaned-data (submit-request-fn data)]
       (if cleaned-data
         (broadcast (write-message cleaned-data))
-        (log/error "Failed to process request of data"))  
+        (log/error "Failed to process request of data"))
       (recur))))
 
 (defn shutdown []

@@ -8,7 +8,7 @@
     <logger name="org.eclipse.jetty.server" level="warn"/>
     <logger name="org.eclipse.jetty.util.log" level="warn"/>
 
-    <root level="info">
+    <root level="debug">
         <appender-ref ref="STDOUT" />
     </root>
 </configuration>

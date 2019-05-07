@@ -1,0 +1,17 @@
+#    -*- mode: org -*-
+
+
+Archived entries from file /Users/jahferh/src/lang/clj/ot/notes.org
+
+
+* DONE Editor fails on rebasing ret+del/del+ret...
+CLOSED: [2015-06-28 Sun 00:09]
+- State "DONE"       from "TODO"       [2015-06-28 Sun 00:09]
+  - Note taken on [2015-06-27 Sat 23:47] \\
+    Something in the =gen-inverse-ops= trying to access a property like =ISeq=, but is =Long=??
+  :PROPERTIES:
+:ARCHIVE_TIME: 2015-06-28 Sun 00:09
+:ARCHIVE_FILE: ~/src/lang/clj/ot/notes.org
+:ARCHIVE_CATEGORY: notes
+:ARCHIVE_TODO: DONE
+  :END:
